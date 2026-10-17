@@ -1,0 +1,53 @@
+# Workflow reutilizable para los proyectos que usan el kit.
+# En el proyecto, crea .github/workflows/sdd-kit.yml con:
+#
+#   name: sdd-kit
+#   on: [pull_request]
+#   jobs:
+#     check:
+#       uses: <org>/sdd-kit/.github/workflows/project-check.yml@v0.1.0
+#       secrets: inherit
+#
+# Falla si alguien ha editado a mano ficheros del kit, si falta ejecutar sync
+# o si la wiki deja de cumplir el contrato.
+name: sdd-kit project check
+
+on:
+  workflow_call:
+    inputs:
+      kit-path:
+        description: Ruta del submódulo del kit en el proyecto
+        type: string
+        default: .sdd-kit
+    secrets:
+      SDD_KIT_TOKEN:
+        description: Token con lectura del repo privado del kit (si el submódulo es privado)
+        required: false
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+          token: ${{ secrets.SDD_KIT_TOKEN || github.token }}
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - run: pip install pyyaml
+
+      - name: Kit sincronizado
+        run: python3 "${{ inputs.kit-path }}/scripts/sync.py" --check
+
+      - name: Wiki cumple el contrato
+        run: python3 "${{ inputs.kit-path }}/scripts/check_wiki.py"
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Specs de OpenSpec válidas
+        run: npx -y @fission-ai/openspec@latest validate --all

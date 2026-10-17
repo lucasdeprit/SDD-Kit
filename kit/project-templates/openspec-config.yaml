@@ -1,0 +1,18 @@
+# Generado por sdd-kit la primera vez. A partir de aquí es del proyecto:
+# el sync no lo vuelve a tocar. Mantén las reglas cortas.
+schema: sdd-kit
+
+context: |
+  Proyecto: {{PROJECT_NAME}}
+  Stack: {{STACKS}}
+  Wiki del proyecto: {{WIKI_PATH}}/index.md. Léela antes de generar cualquier
+  artefacto; manda sobre cualquier convención genérica.
+  Escribe los artefactos en español (las cabeceras de spec de OpenSpec, en inglés).
+
+rules:
+  proposal:
+    - Cita las páginas de la wiki consultadas
+  design:
+    - Cita rutas reales del repo según el Mapa del código de la wiki
+  tasks:
+    - Cada tarea referencia el Requirement que cubre

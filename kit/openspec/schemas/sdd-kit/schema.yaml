@@ -1,0 +1,71 @@
+name: sdd-kit
+version: 1
+description: >-
+  Flujo SDD común a todos los proyectos. Propuesta → specs → diseño → tareas,
+  siempre apoyado en la wiki del proyecto (ruta indicada en config.yaml > context).
+
+artifacts:
+  - id: proposal
+    generates: proposal.md
+    description: Propuesta del cambio (por qué y qué)
+    template: proposal.md
+    instruction: |
+      Antes de escribir, lee el index de la wiki del proyecto (la ruta está en el
+      contexto) y las páginas de "Scope" y "Arquitectura".
+      Explica POR QUÉ hace falta el cambio y QUÉ cambia, sin entrar en el cómo.
+      Si el cambio choca con el scope de la wiki, dilo en "Riesgos y dudas"
+      en vez de asumir.
+      Lista en "Conocimiento consultado" las páginas de la wiki que has leído.
+    requires: []
+
+  - id: specs
+    generates: specs/**/*.md
+    description: Specs delta por capacidad afectada
+    template: spec.md
+    instruction: |
+      Crea un fichero specs/<capacidad>/spec.md por cada capacidad afectada.
+      Usa el formato delta de OpenSpec (ADDED / MODIFIED / REMOVED Requirements)
+      sin traducir las cabeceras: el CLI las necesita para validar y archivar.
+      Cada requisito usa SHALL o MUST y tiene al menos un escenario
+      WHEN/THEN. Describe comportamiento observable, nunca implementación.
+    requires:
+      - proposal
+
+  - id: design
+    generates: design.md
+    description: Diseño técnico alineado con la arquitectura del proyecto
+    template: design.md
+    instruction: |
+      Lee en la wiki las páginas de "Arquitectura", "Convenciones" y
+      "Cómo añadir una funcionalidad" antes de diseñar.
+      Sigue los patrones existentes; si propones uno nuevo, justifica por qué
+      el existente no sirve.
+      Indica los ficheros y módulos que se tocarán apoyándote en el
+      "Mapa del código" de la wiki, no en suposiciones.
+    requires:
+      - proposal
+      - specs
+
+  - id: tasks
+    generates: tasks.md
+    description: Checklist de implementación verificable
+    template: tasks.md
+    instruction: |
+      Tareas pequeñas (menos de medio día), ordenadas y con casilla "- [ ]".
+      Cada tarea indica el requisito de la spec que cubre.
+      Incluye tareas de test según la estrategia de testing de la wiki y una
+      tarea final "Actualizar la wiki" si el cambio altera arquitectura,
+      convenciones o el mapa del código.
+    requires:
+      - specs
+      - design
+
+apply:
+  requires:
+    - tasks
+  tracks: tasks.md
+  instruction: |
+    Implementa las tareas en orden y marca cada una al terminarla.
+    Usa los comandos de build y test de la wiki ("Comandos") para verificar.
+    Si una tarea obliga a desviarse del diseño, para y actualiza design.md antes
+    de seguir.
