@@ -166,7 +166,32 @@ extra_folders:             # carpetas propias del proyecto
 | `verify <ruta>` | Registra una verificación |
 | `log <mensaje>` | Añade una línea a `log.md` |
 
-## 10. Preguntas abiertas
+## 10. Integración con agentes
+
+Igual que OpenSpec, la conexión con los agentes se hace con **ficheros generados** en las rutas que cada herramienta lee, más una CLI con salida `--json`. No hay servidor MCP ni hooks en la primera versión.
+
+Primer objetivo: **GitHub Copilot en VS Code**. Rutas verificadas en la documentación de VS Code (vscode-docs, octubre 2026):
+
+| Pieza | Fichero que genera `init` / `update` | Para qué |
+|---|---|---|
+| Puntero a la wiki | Bloque marcado dentro de `AGENTS.md` (o `.github/copilot-instructions.md` si el proyecto ya lo usa) | Que el agente sepa siempre que la wiki existe y la consulte antes de tocar código |
+| Skill de consulta | `.github/skills/okf-consult-wiki/SKILL.md` | Leer `index.md` y bajar a las páginas relevantes |
+| Skill de actualización | `.github/skills/okf-update-wiki/SKILL.md` | Aplicar `workflows/update-wiki.md` |
+| Skill de validación | `.github/skills/okf-validate-wiki/SKILL.md` | Ejecutar `validate` y corregir lo que falle |
+
+Notas sobre Copilot:
+
+- Las **skills** (`SKILL.md` con `name` y `description` obligatorios, `name` igual al nombre de su carpeta) siguen el estándar abierto agentskills.io. Copilot las lee en `.github/skills/`, `.claude/skills/` y `.agents/skills/`, y aparecen como comandos `/` en el chat. Se usan en lugar de los *prompt files* (`.github/prompts/*.prompt.md`), que solo funcionan en el arnés Local.
+- `AGENTS.md` lo lee Copilot, y también Codex y otros. En el arnés Local depende del ajuste `chat.useAgentsMdFile`.
+- `.github/copilot-instructions.md` también se lee, con `github.copilot.chat.codeGeneration.useInstructionFiles`.
+- Una skill se activa por su `description` y el agente decide si la carga; por eso existe el puntero, que siempre se carga.
+- Los ficheros generados son propiedad de la CLI: `update` los regenera. Lo del proyecto va fuera de los marcadores.
+
+Otros agentes (Claude Code, Cursor, Codex) se añadirán más adelante como adaptadores con sus rutas.
+
+Salida para agentes: `validate --json`, `status --json` y `instructions <type> --json` (plantilla y secciones obligatorias de un tipo de página).
+
+## 11. Preguntas abiertas
 
 - Secciones mínimas por carpeta: ¿son las correctas o demasiado rígidas?
 - ¿Se exige `# Why` en `conventions/`? Ahora no.
