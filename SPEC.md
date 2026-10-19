@@ -1,77 +1,77 @@
-# Contrato de wiki de proyecto sobre OKF (borrador 0.1)
+# Project wiki contract on top of OKF (draft 0.1)
 
-Estado: **borrador para revisar**. Todavía no hay código; esto define qué tiene que cumplir una wiki antes de construir la CLI.
+Status: **draft under review**. This defines what a wiki must satisfy; the `okw` CLI implements and enforces it.
 
-## 1. Objetivo
+## 1. Goal
 
-Toda wiki de proyecto debe tener la misma forma, para que:
+Every project wiki must have the same shape, so that:
 
-- un agente (o una persona) sepa dónde buscar en cualquier proyecto sin conocerlo;
-- los agentes puedan mantener la wiki siguiendo reglas fijas;
-- la estructura aguante el paso del tiempo sin crecer de forma desordenada.
+- an agent (or a person) knows where to look in any project without knowing it beforehand;
+- agents can maintain the wiki by following fixed rules;
+- the structure lasts over time without growing in a disorderly way.
 
-### Principio: la CLI hace lo mecánico, el agente solo escribe contenido
+### Principle: the CLI does the mechanical work, the agent only writes content
 
-Todo lo que se pueda decidir con reglas lo hace la CLI, de forma determinista y sin gastar tokens. El agente se limita a lo que requiere criterio: redactar el contenido de las páginas.
+Anything that can be decided with rules is done by the CLI, deterministically and without spending tokens. The agent is limited to what requires judgement: writing the content of the pages.
 
-| Lo hace la CLI | Lo hace el agente |
+| The CLI does | The agent does |
 |---|---|
-| Crear carpetas, `index.md` y `log.md` | Decidir qué merece una página |
-| Crear una página con frontmatter y esqueleto de secciones | Rellenar las secciones |
-| Registrar la página en el `index.md` de su carpeta | Escribir el `# Why` y los ejemplos |
-| Añadir la línea a `log.md` con fecha | Decidir si algo debe marcarse `deprecated` |
-| Poner `generated` y `verified` con actor y fecha | Revisar contenido contra el código |
-| Validar estructura, secciones, enlaces e índices | Corregir los fallos de contenido que `validate` señale |
-| Corregir solo lo mecánico (`validate --fix`) | |
+| Create folders, `index.md` and `log.md` | Decide what deserves a page |
+| Create a page with frontmatter and a section skeleton | Fill in the sections |
+| Register the page in the `index.md` of its folder | Write the `# Why` and the examples |
+| Append the dated line to `log.md` | Decide whether something should be marked `deprecated` |
+| Set `generated` and `verified` with actor and date | Review content against the code |
+| Validate structure, sections, links and indexes | Fix the content problems that `validate` reports |
+| Fix only the mechanical issues (`validate --fix`) | |
 
-Consecuencias de diseño:
+Design consequences:
 
-- Un solo comando por operación. `new` crea la página, la registra en el índice y apunta el `log`, para que el agente no tenga que editar tres ficheros.
-- Las skills que se generan para los agentes les dicen que **usen la CLI** y que no creen ni editen a mano `index.md`, `log.md` ni el frontmatter de trazabilidad.
-- Los mensajes de `validate` dicen qué fichero, qué regla y cómo arreglarlo, para que el agente lea solo lo necesario.
-- `validate` y `index` se pueden ejecutar en CI o en un hook sin ningún agente.
+- One command per operation. `new` creates the page, registers it in the index and records the `log` entry, so the agent does not have to edit three files.
+- The skills generated for agents tell them to **use the CLI** and not to create or hand-edit `index.md`, `log.md` or the traceability frontmatter.
+- `validate` messages say which file, which rule and how to fix it, so the agent reads only what it needs.
+- `validate` and `index` can run in CI or in a hook without any agent.
 
-## 2. Capas
+## 2. Layers
 
-1. **OKF v0.2** (Google, [open-knowledge-format](https://github.com/GoogleCloudPlatform/open-knowledge-format)): el formato base. Una wiki es un *bundle*: árbol de `.md` con frontmatter YAML, `index.md` y `log.md` reservados.
-2. **Perfil base** (este documento): reglas adicionales, más estrictas que OKF.
-3. **Extensión del proyecto**: carpetas y reglas propias de un proyecto, sin quitar las del perfil base.
+1. **OKF v0.2** (Google, [open-knowledge-format](https://github.com/GoogleCloudPlatform/open-knowledge-format)): the base format. A wiki is a *bundle*: a tree of `.md` files with YAML frontmatter and reserved `index.md` and `log.md`.
+2. **Base profile** (this document): additional rules, stricter than OKF.
+3. **Project extension**: folders and rules specific to a project, without removing those of the base profile.
 
-Una wiki que incumple el perfil pero cumple OKF sigue siendo OKF válida.
+A wiki that breaks the profile but satisfies OKF is still valid OKF.
 
-## 3. Estructura
+## 3. Structure
 
 ```
 wiki/
 ├── index.md
 ├── log.md
 ├── .okf-profile.yaml
-├── overview/          # núcleo
-├── architecture/      # núcleo
-├── patterns/          # núcleo
-├── conventions/       # núcleo
-├── workflows/         # núcleo
-├── testing/           # núcleo
-├── features/          # opcional
-├── modules/           # opcional
-├── interfaces/        # opcional
-├── operations/        # opcional
-└── troubleshooting/   # opcional
+├── overview/          # core
+├── architecture/      # core
+├── patterns/          # core
+├── conventions/       # core
+├── workflows/         # core
+├── testing/           # core
+├── features/          # optional
+├── modules/           # optional
+├── interfaces/        # optional
+├── operations/        # optional
+└── troubleshooting/   # optional
 ```
 
-Los nombres de las carpetas son fijos y no dependen de ninguna tecnología. Lo específico de un proyecto (por ejemplo `bloc` o `payments`) va en páginas, no en carpetas del estándar.
+Folder names are fixed and do not depend on any technology. Whatever is specific to a project (for example `bloc` or `payments`) goes in pages, not in folders of the standard.
 
-### Reglas generales
+### General rules
 
-- Cada carpeta tiene un `index.md`.
-- Nombres de fichero y carpeta en `kebab-case`, sin repetir el nombre de la carpeta (`modules/arch-core.md`, no `modules/auth-core.md` si la carpeta ya es `auth/`).
-- Se pueden añadir carpetas propias; no se pueden quitar ni renombrar las del núcleo.
-- No hay carpeta de decisiones. El motivo de una regla vive en la sección `# Why` de su página. Lo que cambia se edita en la página y se registra en `log.md`. Lo que deja de aplicar se marca `status: deprecated`.
-- El contenido de las páginas puede estar en cualquier idioma. Los nombres de `type`, campos de frontmatter y secciones obligatorias están en inglés.
+- Every folder has an `index.md`.
+- File and folder names in `kebab-case`, without repeating the folder name (`modules/arch-core.md`, not `modules/auth-core.md` if the folder is already `auth/`).
+- Own folders can be added (declared in `extra_folders`); core folders cannot be removed or renamed.
+- There is no decisions folder. The reason for a rule lives in the `# Why` section of its page. What changes is edited in the page and recorded in `log.md`. What stops applying is marked `status: deprecated`.
+- Page content can be in any language. The `type` names, frontmatter fields and required section names are in English.
 
-### Carpeta, `type` y secciones mínimas
+### Folder, `type` and minimum sections
 
-| Carpeta | `type` | Secciones obligatorias en cada página |
+| Folder | `type` | Sections required in every page |
 |---|---|---|
 | `overview/` | `Overview` | `# Purpose`, `# Scope` |
 | `architecture/` | `Architecture` | `# Overview`, `# Rules`, `# Why` |
@@ -85,136 +85,149 @@ Los nombres de las carpetas son fijos y no dependen de ninguna tecnología. Lo e
 | `operations/` | `Operation` | `# When`, `# Steps` |
 | `troubleshooting/` | `Troubleshooting` | `# Symptom`, `# Cause`, `# Fix` |
 
-Una página puede tener más secciones. Solo se exigen estas.
+A page may have more sections. Only these are required.
 
-### Páginas obligatorias
+### Required pages
 
-- `overview/project.md`: qué es el proyecto.
-- `workflows/update-wiki.md`: cuándo y cómo se actualiza la wiki (ver sección 6).
-- `testing/index.md` debe enlazar al menos una página de estrategia de testing.
+- `overview/project.md`: what the project is.
+- `workflows/update-wiki.md`: when and how the wiki is updated (see section 6).
+- `testing/` must contain at least one testing strategy page (so `testing/index.md` links to it).
 
 ## 4. Frontmatter
 
-Todas las páginas de concepto (no `index.md` ni `log.md`) llevan:
+Every concept page (not `index.md` or `log.md`) carries:
 
-| Campo | Exigencia | Notas |
+| Field | Requirement | Notes |
 |---|---|---|
-| `type` | error si falta | Debe coincidir con el de su carpeta |
-| `title` | error si falta | |
-| `description` | error si falta | Una frase |
-| `tags` | recomendado | Lista de textos |
-| `generated` | recomendado | `{ by, at }`: quién generó o cambió el contenido y cuándo |
-| `verified` | recomendado | Lista de `{ by, at }` con confirmaciones |
-| `status` | opcional | `draft`, `stable` (por defecto) o `deprecated` |
-| `stale_after` | opcional | Fecha ISO 8601 con zona horaria |
+| `type` | error if missing | Must match the type of its folder |
+| `title` | error if missing | |
+| `description` | error if missing | One sentence |
+| `tags` | recommended | List of strings |
+| `generated` | recommended | `{ by, at }`: who produced or changed the content and when |
+| `verified` | recommended | List of `{ by, at }` confirmations |
+| `status` | optional | `draft`, `stable` (default) or `deprecated` |
+| `stale_after` | optional | ISO 8601 date |
 
-"Recomendado" significa `warning` por defecto. Cada proyecto puede subirlo a `error` en su `.okf-profile.yaml`.
+"Recommended" means `warning` by default. Each project can raise it to `error` in its `.okf-profile.yaml`.
 
-Convención de actores (OKF): `human:<id>`, `process:<id>` o `<herramienta>/<versión>`.
+Actor convention (OKF): `human:<id>`, `process:<id>` or `<tool>/<version>`.
 
-## 5. `index.md` y `log.md`
+## 5. `index.md` and `log.md`
 
-**`index.md`** (cada carpeta). Sin frontmatter, salvo el de la raíz, que lleva `okf_version: "0.2"`. Lista una línea por página, como pide OKF:
+**`index.md`** (every folder). No frontmatter, except the root one, which carries `okf_version: "0.2"`. One line per page, as OKF asks:
 
 ```markdown
 # Patterns
 
-* [Gestión de estado](/patterns/state-management.md) - Cómo se estructura el estado de una pantalla.
+* [State management](/patterns/state-management.md) - How the state of a screen is structured.
 ```
 
-Cada página de la carpeta debe aparecer en su `index.md`, y cada entrada debe apuntar a una página que exista.
+Indexes are generated by `okw index` and are never edited by hand. Every page of the folder must appear in its `index.md`, and every entry must point to a page that exists.
 
-**`log.md`** (raíz). Fechas `YYYY-MM-DD` agrupadas, las más recientes primero, una línea por cambio con el mismo prefijo para poder buscarlo:
+**`log.md`** (root). `YYYY-MM-DD` dates grouped, most recent first, one line per change with the same prefix so it can be searched:
 
 ```markdown
 ## 2026-10-17
 
-* **Update** [architecture/layers](/architecture/layers.md) - Nueva regla de dependencias.
+* **Update** [architecture/layers](/architecture/layers.md) - New dependency rule.
 ```
 
-## 6. Mantenimiento por agentes
+## 6. Maintenance by agents
 
-Los agentes actualizan la wiki. `workflows/update-wiki.md` define el procedimiento estándar:
+Agents update the wiki. `workflows/update-wiki.md` defines the standard procedure:
 
-1. Si un cambio toca una regla, un patrón o una convención, se edita la página afectada, no se añade una nueva.
-2. Se actualiza `generated` y, si alguien lo revisa, `verified`.
-3. Se actualiza el `index.md` de la carpeta.
-4. Se añade una línea a `log.md`.
-5. Si una página deja de aplicar, se marca `status: deprecated`.
+1. If a change affects a rule, a pattern or a convention, the affected page is edited; a new one is not added.
+2. `generated` is updated and, if someone reviews it, `verified`.
+3. The `index.md` of the folder is updated.
+4. A line is added to `log.md`.
+5. If a page stops applying, it is marked `status: deprecated`.
 
-`workflows/` enlaza con `patterns/`: cada paso de un workflow que depende de una forma de implementar algo enlaza a su pattern.
+`workflows/` links to `patterns/`: every workflow step that depends on a way of implementing something links to its pattern.
 
-## 7. Configuración: `.okf-profile.yaml`
+## 7. Configuration: `.okf-profile.yaml`
 
 ```yaml
-profile: base@0.1          # perfil base y versión
-language: es               # idioma del contenido (informativo)
-severity:                  # sobreescribe severidades por regla
+profile: base@0.1          # base profile and version
+language: en               # language of the content (informational)
+severity:                  # overrides the severity of a rule: error | warning | off
   frontmatter.generated: error
   frontmatter.verified: warning
-extra_folders:             # carpetas propias del proyecto
+extra_folders:             # project-specific folders
   - name: mobile
     type: Mobile
     sections: ["# Summary"]
 ```
 
-## 8. Comprobaciones previstas (`validate`)
+## 8. Checks (`validate`)
 
-| Regla | Severidad por defecto |
+Every rule has a stable id that can be used in `severity`.
+
+| Rule id | Check | Default severity | Fixed by `--fix` |
+|---|---|---|---|
+| `okf.frontmatter` | Concept pages have parseable YAML frontmatter | error | |
+| `okf.type` | `type` is present and non-empty | error | |
+| `okf.index` | `index.md` has no frontmatter (the root one only `okf_version`) | error | |
+| `okf.log` | Date headings in `log.md` are `YYYY-MM-DD` | error | |
+| `structure.core-folder` | Every core folder exists | error | yes |
+| `structure.required-page` | Required pages exist | error | yes |
+| `structure.testing-page` | `testing/` has at least one strategy page | error | |
+| `structure.unknown-folder` | Pages live in a core, optional or declared folder | warning | |
+| `page.type` | `type` matches the type of the folder | error | |
+| `page.sections` | Required sections are present | error | yes |
+| `page.todo` | No unfilled `<!-- TODO -->` placeholders | warning | |
+| `frontmatter.title` | `title` present | error | |
+| `frontmatter.description` | `description` present | error | |
+| `frontmatter.status` | `status` is `draft`, `stable` or `deprecated` | error | |
+| `frontmatter.generated` | `generated` present, with `by` | warning | |
+| `frontmatter.verified` | `verified` present | warning | |
+| `frontmatter.stale` | `stale_after` is a valid date and not yet reached | warning | |
+| `name.kebab-case` | File and folder names are `kebab-case` | error | |
+| `index.stale` | Every `index.md` is up to date (missing pages, dead entries, missing indexes) | error | yes |
+| `link.broken` | Internal links point to existing pages | warning | |
+| `page.orphan` | Some other concept page links to it | warning | |
+
+`validate` exits with code 1 if there is any error (`--strict`: any warning too). `--json` prints every issue with `rule`, `severity`, `file`, `message` and `fix`.
+
+## 9. CLI (Node, `npx`)
+
+| Command | What it does |
 |---|---|
-| Conformidad OKF v0.2 (frontmatter parseable, `type` no vacío, `index.md` y `log.md` con estructura válida) | error |
-| Existen las carpetas del núcleo, cada una con `index.md` | error |
-| Existen las páginas obligatorias | error |
-| `type` coincide con el de la carpeta | error |
-| `title` y `description` presentes | error |
-| Secciones obligatorias presentes | error |
-| Nombres en `kebab-case` | error |
-| Toda página aparece en el `index.md` de su carpeta | error |
-| Enlaces internos sin romper | warning |
-| Páginas huérfanas (nadie las enlaza) | warning |
-| `generated` / `verified` presentes | warning |
-| Página con `stale_after` vencido | warning |
+| `init` | Creates the wiki with the core, the indexes, `log.md` and `.okf-profile.yaml` |
+| `new <type> <name>` | Creates a page with its template and frontmatter, indexes it and logs it |
+| `validate` | Runs the checks of section 8; `--fix` repairs the mechanical ones |
+| `index` | Regenerates the `index.md` files |
+| `status` | Lists stale, unverified, draft or deprecated pages |
+| `verify <path>` | Records a verification |
+| `log <message>` | Appends a line to `log.md` |
 
-## 9. CLI prevista (Node, `npx`)
+## 10. Agent integration
 
-| Comando | Qué hace |
-|---|---|
-| `init` | Crea la wiki con el núcleo, los índices, `log.md` y `.okf-profile.yaml` |
-| `new <tipo> <ruta>` | Crea una página con su plantilla y frontmatter |
-| `validate` | Ejecuta las comprobaciones de la sección 8 |
-| `index` | Regenera los `index.md` |
-| `status` | Lista páginas vencidas, sin verificar, en borrador o deprecadas |
-| `verify <ruta>` | Registra una verificación |
-| `log <mensaje>` | Añade una línea a `log.md` |
+As OpenSpec does, the connection with agents is made with **generated files** in the paths each tool reads, plus a CLI with `--json` output. There is no MCP server and no hooks in the first version.
 
-## 10. Integración con agentes
+First target: **GitHub Copilot in VS Code**. Paths verified in the VS Code documentation (vscode-docs, October 2026):
 
-Igual que OpenSpec, la conexión con los agentes se hace con **ficheros generados** en las rutas que cada herramienta lee, más una CLI con salida `--json`. No hay servidor MCP ni hooks en la primera versión.
-
-Primer objetivo: **GitHub Copilot en VS Code**. Rutas verificadas en la documentación de VS Code (vscode-docs, octubre 2026):
-
-| Pieza | Fichero que genera `init` / `update` | Para qué |
+| Piece | File generated by `init` / `update` | Purpose |
 |---|---|---|
-| Puntero a la wiki | Bloque marcado dentro de `AGENTS.md` (o `.github/copilot-instructions.md` si el proyecto ya lo usa) | Que el agente sepa siempre que la wiki existe y la consulte antes de tocar código |
-| Skill de consulta | `.github/skills/okf-consult-wiki/SKILL.md` | Leer `index.md` y bajar a las páginas relevantes |
-| Skill de actualización | `.github/skills/okf-update-wiki/SKILL.md` | Aplicar `workflows/update-wiki.md` |
-| Skill de validación | `.github/skills/okf-validate-wiki/SKILL.md` | Ejecutar `validate` y corregir lo que falle |
+| Pointer to the wiki | Marked block inside `AGENTS.md` (or `.github/copilot-instructions.md` if the project already uses it) | So the agent always knows the wiki exists and consults it before touching code |
+| Consult skill | `.github/skills/okf-consult-wiki/SKILL.md` | Read `index.md` and drill into the relevant pages |
+| Update skill | `.github/skills/okf-update-wiki/SKILL.md` | Apply `workflows/update-wiki.md` |
+| Validation skill | `.github/skills/okf-validate-wiki/SKILL.md` | Run `validate` and fix what fails |
 
-Notas sobre Copilot:
+Notes on Copilot:
 
-- Las **skills** (`SKILL.md` con `name` y `description` obligatorios, `name` igual al nombre de su carpeta) siguen el estándar abierto agentskills.io. Copilot las lee en `.github/skills/`, `.claude/skills/` y `.agents/skills/`, y aparecen como comandos `/` en el chat. Se usan en lugar de los *prompt files* (`.github/prompts/*.prompt.md`), que solo funcionan en el arnés Local.
-- `AGENTS.md` lo lee Copilot, y también Codex y otros. En el arnés Local depende del ajuste `chat.useAgentsMdFile`.
-- `.github/copilot-instructions.md` también se lee, con `github.copilot.chat.codeGeneration.useInstructionFiles`.
-- Una skill se activa por su `description` y el agente decide si la carga; por eso existe el puntero, que siempre se carga.
-- Los ficheros generados son propiedad de la CLI: `update` los regenera. Lo del proyecto va fuera de los marcadores.
+- **Skills** (`SKILL.md` with required `name` and `description`, `name` equal to the folder name) follow the open standard agentskills.io. Copilot reads them in `.github/skills/`, `.claude/skills/` and `.agents/skills/`, and they show up as `/` commands in chat. They are used instead of *prompt files* (`.github/prompts/*.prompt.md`), which only work in the Local harness.
+- `AGENTS.md` is read by Copilot, and also by Codex and others. In the Local harness it depends on the `chat.useAgentsMdFile` setting.
+- `.github/copilot-instructions.md` is also read, with `github.copilot.chat.codeGeneration.useInstructionFiles`.
+- A skill is activated by its `description` and the agent decides whether to load it; that is why the pointer exists, since it is always loaded.
+- Generated files belong to the CLI: `update` regenerates them. Project content goes outside the markers.
 
-Otros agentes (Claude Code, Cursor, Codex) se añadirán más adelante como adaptadores con sus rutas.
+Other agents (Claude Code, Cursor, Codex) will be added later as adapters with their paths.
 
-Salida para agentes: `validate --json`, `status --json` y `instructions <type> --json` (plantilla y secciones obligatorias de un tipo de página).
+Output for agents: `validate --json`, `status --json` and `instructions <type> --json` (template and required sections of a page type).
 
-## 11. Preguntas abiertas
+## 11. Open questions
 
-- Secciones mínimas por carpeta: ¿son las correctas o demasiado rígidas?
-- ¿Se exige `# Why` en `conventions/`? Ahora no.
-- ¿Hace falta una carpeta para fuentes en bruto (documentos originales de los que sale la wiki)?
-- Plantilla exacta de `workflows/update-wiki.md`.
+- Minimum sections per folder: are they the right ones or too rigid?
+- Is `# Why` required in `conventions/`? Currently not.
+- Is a folder needed for raw sources (original documents the wiki is derived from)?
+- Exact template of `workflows/update-wiki.md`.

@@ -65,6 +65,7 @@ export function loadProfile(wikiRoot) {
   });
   return {
     config,
+    severity: config.severity ?? {},
     folders: [...CORE_FOLDERS, ...OPTIONAL_FOLDERS, ...extra],
   };
 }

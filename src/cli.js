@@ -6,6 +6,7 @@ import { init, initHelp } from './commands/init.js';
 import { newPage, newHelp } from './commands/new.js';
 import { indexCommand, indexHelp } from './commands/index.js';
 import { logCommand, logHelp } from './commands/log.js';
+import { validateCommand, validateHelp } from './commands/validate.js';
 
 const { version } = JSON.parse(readFileSync(new URL('../package.json', import.meta.url), 'utf8'));
 
@@ -16,6 +17,7 @@ Commands:
   new <type> <name>         Create a page, index it and record it in the log
   index [--check]           Regenerate the index.md files
   log "<message>"           Append a line to log.md
+  validate [--fix]          Check the wiki against OKF and the profile
 
 Common options:
   --wiki <folder>           Wiki to operate on (by default it is searched from the current directory)
@@ -67,6 +69,12 @@ const COMMANDS = {
     options: { check: { type: 'boolean' } },
     needsWiki: true,
     run: ({ values, root }) => indexCommand({ root, check: values.check }),
+  },
+  validate: {
+    help: validateHelp,
+    options: { fix: { type: 'boolean' }, strict: { type: 'boolean' } },
+    needsWiki: true,
+    run: ({ values, root }) => validateCommand({ root, fix: values.fix, strict: values.strict, version }),
   },
   log: {
     help: logHelp,
