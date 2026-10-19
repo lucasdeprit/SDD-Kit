@@ -10,6 +10,27 @@ Toda wiki de proyecto debe tener la misma forma, para que:
 - los agentes puedan mantener la wiki siguiendo reglas fijas;
 - la estructura aguante el paso del tiempo sin crecer de forma desordenada.
 
+### Principio: la CLI hace lo mecánico, el agente solo escribe contenido
+
+Todo lo que se pueda decidir con reglas lo hace la CLI, de forma determinista y sin gastar tokens. El agente se limita a lo que requiere criterio: redactar el contenido de las páginas.
+
+| Lo hace la CLI | Lo hace el agente |
+|---|---|
+| Crear carpetas, `index.md` y `log.md` | Decidir qué merece una página |
+| Crear una página con frontmatter y esqueleto de secciones | Rellenar las secciones |
+| Registrar la página en el `index.md` de su carpeta | Escribir el `# Why` y los ejemplos |
+| Añadir la línea a `log.md` con fecha | Decidir si algo debe marcarse `deprecated` |
+| Poner `generated` y `verified` con actor y fecha | Revisar contenido contra el código |
+| Validar estructura, secciones, enlaces e índices | Corregir los fallos de contenido que `validate` señale |
+| Corregir solo lo mecánico (`validate --fix`) | |
+
+Consecuencias de diseño:
+
+- Un solo comando por operación. `new` crea la página, la registra en el índice y apunta el `log`, para que el agente no tenga que editar tres ficheros.
+- Las skills que se generan para los agentes les dicen que **usen la CLI** y que no creen ni editen a mano `index.md`, `log.md` ni el frontmatter de trazabilidad.
+- Los mensajes de `validate` dicen qué fichero, qué regla y cómo arreglarlo, para que el agente lea solo lo necesario.
+- `validate` y `index` se pueden ejecutar en CI o en un hook sin ningún agente.
+
 ## 2. Capas
 
 1. **OKF v0.2** (Google, [open-knowledge-format](https://github.com/GoogleCloudPlatform/open-knowledge-format)): el formato base. Una wiki es un *bundle*: árbol de `.md` con frontmatter YAML, `index.md` y `log.md` reservados.
