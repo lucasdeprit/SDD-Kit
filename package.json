@@ -1,0 +1,22 @@
+{
+  "name": "okw",
+  "version": "0.1.0",
+  "description": "Scaffolding y gestión de wikis de proyecto en Open Knowledge Format (OKF)",
+  "type": "module",
+  "bin": {
+    "okw": "bin/okw.js"
+  },
+  "files": [
+    "bin",
+    "src"
+  ],
+  "scripts": {
+    "test": "node --test test/*.test.js"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "dependencies": {
+    "yaml": "^2.9.1"
+  }
+}
