@@ -5,7 +5,7 @@ import { UserError } from './errors.js';
 
 export const KEBAB = /^[a-z0-9]+(-[a-z0-9]+)*$/;
 
-// Rutas de wiki siempre con "/", también en Windows.
+// Wiki paths always use "/", on Windows too.
 export const toPosix = (p) => p.split('\\').join('/');
 
 export function writeText(file, text) {
@@ -13,7 +13,7 @@ export function writeText(file, text) {
   writeFileSync(file, text);
 }
 
-// Escribe solo si el contenido cambia. Devuelve true si escribió.
+// Writes only if the content changes. Returns true if it wrote.
 export function writeIfChanged(file, text) {
   if (existsSync(file) && readFileSync(file, 'utf8') === text) return false;
   writeText(file, text);
@@ -33,14 +33,14 @@ export function isoDate(now = new Date()) {
   return isoNow(now).slice(0, 10);
 }
 
-// Escalar YAML en una línea (con comillas solo si hacen falta).
+// Single-line YAML scalar (quoted only when needed).
 export const yamlScalar = (value) => stringify(value, { lineWidth: 0 }).trim();
 
 export function assertKebabPath(rel) {
   const segments = rel.split('/');
   for (const s of segments) {
     if (!KEBAB.test(s)) {
-      throw new UserError(`"${s}" no es kebab-case (minúsculas, números y guiones). Ejemplo: "state-management".`);
+      throw new UserError(`"${s}" is not kebab-case (lowercase letters, digits and hyphens). Example: "state-management".`);
     }
   }
 }

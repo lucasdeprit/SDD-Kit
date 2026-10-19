@@ -2,7 +2,7 @@ import { parse } from 'yaml';
 
 const FENCE = /^---\r?\n([\s\S]*?)\r?\n---\r?\n?/;
 
-// Devuelve { data, body }. data es null si no hay frontmatter parseable.
+// Returns { data, body }. data is null when there is no parseable frontmatter.
 export function parseFrontmatter(text) {
   const match = FENCE.exec(text);
   if (!match) return { data: null, body: text };

@@ -7,7 +7,7 @@ export const PROFILE_ID = 'base@0.1';
 export const PROFILE_FILE = '.okf-profile.yaml';
 export const OKF_VERSION = '0.2';
 
-// Carpetas del perfil base. Los nombres y `type` son fijos; ver SPEC.md sección 3.
+// Base profile folders. Names and `type` are fixed; see SPEC.md section 3.
 const core = (name, type, title, description, sections) => ({
   name,
   type,
@@ -26,39 +26,39 @@ const optional = (name, type, title, description, sections) => ({
 });
 
 export const CORE_FOLDERS = [
-  core('overview', 'Overview', 'Overview', 'Qué es el proyecto, su alcance y su glosario.', ['Purpose', 'Scope']),
-  core('architecture', 'Architecture', 'Architecture', 'Estructura, capas y reglas de dependencias.', ['Overview', 'Rules', 'Why']),
-  core('patterns', 'Pattern', 'Patterns', 'Cómo se implementa cada cosa, con un ejemplo real.', ['When to use', 'How', 'Example', 'Why']),
-  core('conventions', 'Convention', 'Conventions', 'Estilo, nombres y convenciones de trabajo.', ['Rule', 'Examples']),
-  core('workflows', 'Workflow', 'Workflows', 'Cómo se trabaja: setup, build, PRs, releases, onboarding.', ['Goal', 'Steps']),
-  core('testing', 'Testing', 'Testing', 'Estrategia de testing, cómo ejecutarlo y reglas.', ['Scope', 'How to run', 'Rules']),
+  core('overview', 'Overview', 'Overview', 'What the project is, its scope and its glossary.', ['Purpose', 'Scope']),
+  core('architecture', 'Architecture', 'Architecture', 'Structure, layers and dependency rules.', ['Overview', 'Rules', 'Why']),
+  core('patterns', 'Pattern', 'Patterns', 'How each thing is implemented, with a real example.', ['When to use', 'How', 'Example', 'Why']),
+  core('conventions', 'Convention', 'Conventions', 'Style, naming and working conventions.', ['Rule', 'Examples']),
+  core('workflows', 'Workflow', 'Workflows', 'How we work: setup, build, PRs, releases, onboarding.', ['Goal', 'Steps']),
+  core('testing', 'Testing', 'Testing', 'Testing strategy, how to run it and rules.', ['Scope', 'How to run', 'Rules']),
 ];
 
 export const OPTIONAL_FOLDERS = [
-  optional('features', 'Feature', 'Features', 'Capacidades de negocio y flujos.', ['Summary', 'Behavior']),
-  optional('modules', 'Module', 'Modules', 'Paquetes y componentes internos.', ['Responsibility', 'Public API']),
-  optional('interfaces', 'Interface', 'Interfaces', 'Contratos externos: APIs, eventos, integraciones.', ['Contract', 'Consumers']),
-  optional('operations', 'Operation', 'Operations', 'Despliegue, runbooks e incidentes.', ['When', 'Steps']),
-  optional('troubleshooting', 'Troubleshooting', 'Troubleshooting', 'Errores conocidos y su arreglo.', ['Symptom', 'Cause', 'Fix']),
+  optional('features', 'Feature', 'Features', 'Business capabilities and flows.', ['Summary', 'Behavior']),
+  optional('modules', 'Module', 'Modules', 'Internal packages and components.', ['Responsibility', 'Public API']),
+  optional('interfaces', 'Interface', 'Interfaces', 'External contracts: APIs, events, integrations.', ['Contract', 'Consumers']),
+  optional('operations', 'Operation', 'Operations', 'Deployment, runbooks and incidents.', ['When', 'Steps']),
+  optional('troubleshooting', 'Troubleshooting', 'Troubleshooting', 'Known problems and how to fix them.', ['Symptom', 'Cause', 'Fix']),
 ];
 
-// Alias de línea de comandos para un tipo: "Pattern" -> "pattern".
+// Command-line alias for a type: "Pattern" -> "pattern".
 export const typeAlias = (type) => type.toLowerCase().replace(/\s+/g, '-');
 
 export function loadProfile(wikiRoot) {
   const file = join(wikiRoot, PROFILE_FILE);
   if (!existsSync(file)) {
-    throw new UserError(`No se encuentra ${PROFILE_FILE} en ${wikiRoot}. ¿Es una wiki okw? Ejecuta "okw init".`);
+    throw new UserError(`${PROFILE_FILE} not found in ${wikiRoot}. Is this an okw wiki? Run "okw init".`);
   }
   let config;
   try {
     config = parse(readFileSync(file, 'utf8')) ?? {};
   } catch (err) {
-    throw new UserError(`${PROFILE_FILE} no es YAML válido: ${err.message}`);
+    throw new UserError(`${PROFILE_FILE} is not valid YAML: ${err.message}`);
   }
   const extra = (config.extra_folders ?? []).map((f) => {
     if (!f?.name || !f?.type) {
-      throw new UserError(`${PROFILE_FILE}: cada entrada de extra_folders necesita "name" y "type".`);
+      throw new UserError(`${PROFILE_FILE}: every extra_folders entry needs "name" and "type".`);
     }
     const sections = (f.sections ?? []).map((s) => String(s).replace(/^#+\s*/, ''));
     return { name: f.name, type: f.type, title: f.title ?? f.type, description: f.description ?? '', sections, core: false, extra: true };

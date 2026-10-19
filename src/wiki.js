@@ -3,19 +3,19 @@ import { dirname, join, resolve } from 'node:path';
 import { PROFILE_FILE } from './profile.js';
 import { UserError } from './errors.js';
 
-// La raíz de la wiki es la carpeta que contiene .okf-profile.yaml.
+// The wiki root is the folder that contains .okf-profile.yaml.
 export function findWikiRoot(cwd, explicit) {
   if (explicit) {
     const root = resolve(cwd, explicit);
     if (!existsSync(join(root, PROFILE_FILE))) {
-      throw new UserError(`${explicit} no es una wiki okw (falta ${PROFILE_FILE}).`);
+      throw new UserError(`${explicit} is not an okw wiki (${PROFILE_FILE} is missing).`);
     }
     return root;
   }
   let dir = resolve(cwd);
   for (;;) {
     if (existsSync(join(dir, PROFILE_FILE))) return dir;
-    // Wiki en ./wiki o ./docs/wiki respecto al directorio actual.
+    // Wiki in ./wiki or ./docs/wiki relative to the current directory.
     for (const sub of ['wiki', 'docs/wiki']) {
       if (existsSync(join(dir, sub, PROFILE_FILE))) return join(dir, sub);
     }
@@ -23,5 +23,5 @@ export function findWikiRoot(cwd, explicit) {
     if (parent === dir) break;
     dir = parent;
   }
-  throw new UserError(`No se encuentra ninguna wiki okw desde ${cwd}. Ejecuta "okw init" o usa --wiki <carpeta>.`);
+  throw new UserError(`No okw wiki found from ${cwd}. Run "okw init" or use --wiki <folder>.`);
 }

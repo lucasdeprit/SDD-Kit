@@ -17,7 +17,7 @@ export function renderPage({ folder, title, description, by, status = 'draft', n
   return `${front.join('\n')}\n\n${sections.join('\n')}`;
 }
 
-// Páginas obligatorias del núcleo (SPEC.md sección 3). Las crea `init`.
+// Required core pages (SPEC.md section 3). Created by `init`.
 export function requiredPages({ by, now }) {
   const stamp = { by, now };
   return [
@@ -27,7 +27,7 @@ export function requiredPages({ by, now }) {
         renderPage({
           folder: { type: 'Overview', sections: [] },
           title: 'Project',
-          description: 'Qué es el proyecto y para quién.',
+          description: 'What the project is and who it is for.',
           ...stamp,
         }).trimEnd(),
         '',
@@ -41,7 +41,7 @@ export function requiredPages({ by, now }) {
         renderPage({
           folder: { type: 'Workflow', sections: [] },
           title: 'Update the wiki',
-          description: 'Cuándo y cómo se actualiza esta wiki.',
+          description: 'When and how this wiki is updated.',
           ...stamp,
           status: 'stable',
         }).trimEnd(),
@@ -54,14 +54,14 @@ export function requiredPages({ by, now }) {
 
 const UPDATE_WIKI_BODY = `# Goal
 
-Mantener la wiki fiel al proyecto con el mínimo trabajo manual. La CLI \`okw\` hace lo mecánico (índices, log, frontmatter, validación); quien edita solo escribe contenido.
+Keep the wiki faithful to the project with as little manual work as possible. The \`okw\` CLI does the mechanical parts (indexes, log, frontmatter, validation); whoever edits only writes content.
 
 # Steps
 
-1. Si un cambio afecta a una regla, un patrón o una convención, edita la página existente. No crees una página nueva para algo que ya está documentado.
-2. Si hace falta una página nueva, créala con \`okw new <type> <nombre> --description "..."\`. Registra la página en el índice y en \`log.md\`. No edites \`index.md\` ni \`log.md\` a mano.
-3. Rellena las secciones de la página. Explica el motivo en \`# Why\` cuando la página lo pida.
-4. Si cambias una página existente, registra el cambio con \`okw log "<resumen>" --page <ruta>\`.
-5. Si algo deja de aplicar, marca su página con \`status: deprecated\` en vez de borrarla sin más.
-6. Ejecuta \`okw validate\` y corrige lo que señale.
+1. If a change affects a rule, a pattern or a convention, edit the existing page. Do not create a new page for something that is already documented.
+2. If a new page is needed, create it with \`okw new <type> <name> --description "..."\`. It registers the page in the index and in \`log.md\`. Do not edit \`index.md\` or \`log.md\` by hand.
+3. Fill in the page sections. Explain the reason in \`# Why\` when the page asks for it.
+4. If you change an existing page, record the change with \`okw log "<summary>" --page <path>\`.
+5. If something no longer applies, mark its page with \`status: deprecated\` instead of just deleting it.
+6. Run \`okw validate\` and fix whatever it reports.
 `;

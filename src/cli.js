@@ -9,21 +9,21 @@ import { logCommand, logHelp } from './commands/log.js';
 
 const { version } = JSON.parse(readFileSync(new URL('../package.json', import.meta.url), 'utf8'));
 
-const HELP = `okw ${version} - scaffolding y gestión de wikis OKF
+const HELP = `okw ${version} - scaffolding and management of OKF wikis
 
-Comandos:
-  init [carpeta]            Crea una wiki con el perfil base
-  new <type> <nombre>       Crea una página, la indexa y la registra en el log
-  index [--check]           Regenera los index.md
-  log "<mensaje>"           Añade una línea a log.md
+Commands:
+  init [folder]             Create a wiki with the base profile
+  new <type> <name>         Create a page, index it and record it in the log
+  index [--check]           Regenerate the index.md files
+  log "<message>"           Append a line to log.md
 
-Opciones comunes:
-  --wiki <carpeta>          Wiki sobre la que operar (por defecto se busca desde el directorio actual)
-  --json                    Salida en JSON, para agentes y scripts
-  -h, --help                Ayuda de un comando
+Common options:
+  --wiki <folder>           Wiki to operate on (by default it is searched from the current directory)
+  --json                    JSON output, for agents and scripts
+  -h, --help                Help for a command
   -v, --version
 
-Ejecuta "okw <comando> --help" para más detalle.`;
+Run "okw <command> --help" for details.`;
 
 const COMMON = {
   wiki: { type: 'string' },
@@ -50,7 +50,7 @@ const COMMANDS = {
     options: { title: { type: 'string' }, description: { type: 'string' }, by: { type: 'string' } },
     needsWiki: true,
     run: ({ values, positionals, root }) => {
-      if (positionals.length < 2) throw new UserError('Uso: okw new <type> <nombre> --description "..."');
+      if (positionals.length < 2) throw new UserError('Usage: okw new <type> <name> --description "..."');
       return newPage({
         root,
         type: positionals[0],
@@ -89,7 +89,7 @@ export async function run(argv, { cwd = process.cwd(), out = console.log, err = 
   const [name, ...rest] = argv;
   const command = COMMANDS[name];
   if (!command) {
-    err(`Comando desconocido: ${name}\n\n${HELP}`);
+    err(`Unknown command: ${name}\n\n${HELP}`);
     return 1;
   }
   try {

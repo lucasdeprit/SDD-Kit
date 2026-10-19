@@ -1,2 +1,2 @@
-// Error esperado: se muestra el mensaje y se sale con código 1, sin traza.
+// Expected error: the message is printed and the process exits with code 1, no stack trace.
 export class UserError extends Error {}

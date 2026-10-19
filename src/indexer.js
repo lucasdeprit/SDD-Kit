@@ -24,7 +24,7 @@ function listDir(absDir) {
 const entryLine = (title, url, description) =>
   `* [${title}](${url})${description ? ` - ${description}` : ''}`;
 
-// Una sola línea: las descripciones multilínea romperían el formato de lista.
+// Single line: multi-line descriptions would break the list format.
 const oneLine = (s) => String(s ?? '').replace(/\s+/g, ' ').trim();
 
 export function renderIndex(root, relDir, profile) {
@@ -49,13 +49,13 @@ export function renderIndex(root, relDir, profile) {
 
   if (subs.length) lines.push(...subs, '');
   if (files.length) lines.push(...files, '');
-  if (!subs.length && !files.length) lines.push('_Sin páginas todavía._', '');
+  if (!subs.length && !files.length) lines.push('_No pages yet._', '');
 
   const body = lines.join('\n');
   return relDir === '' ? `---\nokf_version: "${OKF_VERSION}"\n---\n${body}` : body;
 }
 
-// Directorios (relativos, "" = raíz) que deben tener index.md.
+// Directories (relative, "" = root) that must have an index.md.
 export function indexedDirs(root) {
   const result = [''];
   const walk = (rel) => {
@@ -70,7 +70,7 @@ export function indexedDirs(root) {
   return result;
 }
 
-// Regenera todos los index.md. Con check=true no escribe y solo informa.
+// Regenerates every index.md. With check=true it writes nothing and only reports.
 export function regenerateIndexes(root, profile, { check = false } = {}) {
   const changed = [];
   for (const rel of indexedDirs(root)) {

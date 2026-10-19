@@ -1,25 +1,25 @@
 # okw
 
-Scaffolding y gestión de wikis de proyecto en [Open Knowledge Format (OKF)](https://github.com/GoogleCloudPlatform/open-knowledge-format).
+Scaffolding and management of project wikis in [Open Knowledge Format (OKF)](https://github.com/GoogleCloudPlatform/open-knowledge-format).
 
-La CLI hace lo mecánico (estructura, índices, log, frontmatter, validación) para que los agentes solo escriban contenido. El contrato que define está en [SPEC.md](SPEC.md).
+The CLI does the mechanical work (structure, indexes, log, frontmatter, validation) so that agents only write content. The contract it enforces is described in [SPEC.md](SPEC.md).
 
-## Estado
+## Status
 
-En construcción. Disponible: `init`, `new`, `index`, `log`. Pendiente: `validate`, `verify`, `status`, y la generación de skills para agentes (Copilot).
+Work in progress. Available: `init`, `new`, `index`, `log`. Pending: `validate`, `verify`, `status`, and generating skills for agents (Copilot).
 
-## Uso
+## Usage
 
 ```bash
 node bin/okw.js init docs/wiki --with features,modules
-node bin/okw.js new pattern state-management --description "Cómo se estructura el estado."
-node bin/okw.js log "Nueva regla de capas" --page architecture/layers.md
+node bin/okw.js new pattern state-management --description "How screen state is structured."
+node bin/okw.js log "New layering rule" --page architecture/layers.md
 node bin/okw.js index --check
 ```
 
-Todos los comandos aceptan `--json` y `--wiki <carpeta>`. Requiere Node 20 o superior.
+Every command accepts `--json` and `--wiki <folder>`. Requires Node 20 or later.
 
-## Desarrollo
+## Development
 
 ```bash
 npm install

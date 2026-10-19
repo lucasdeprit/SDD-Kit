@@ -8,27 +8,27 @@ import { requiredPages } from '../templates.js';
 import { writeText } from '../util.js';
 import { UserError } from '../errors.js';
 
-export const initHelp = `okw init [carpeta] [--with features,modules] [--language es] [--by <actor>]
+export const initHelp = `okw init [folder] [--with features,modules] [--language en] [--by <actor>]
 
-Crea una wiki con el núcleo del perfil base (por defecto en ./wiki).
-  --with      carpetas opcionales a crear ahora: ${OPTIONAL_FOLDERS.map((f) => f.name).join(', ')}
-  --language  idioma del contenido, solo informativo (por defecto es)
-  --by        actor para "generated" (por defecto okw/<versión>)`;
+Creates a wiki with the base profile core (in ./wiki by default).
+  --with      optional folders to create now: ${OPTIONAL_FOLDERS.map((f) => f.name).join(', ')}
+  --language  language of the wiki content, informational only (default: en)
+  --by        actor recorded in "generated" (default: okw/<version>)`;
 
-export function init({ cwd, dir = 'wiki', withFolders = [], language = 'es', by, now = new Date(), version }) {
+export function init({ cwd, dir = 'wiki', withFolders = [], language = 'en', by, now = new Date(), version }) {
   const root = resolve(cwd, dir);
   if (existsSync(join(root, PROFILE_FILE))) {
-    throw new UserError(`Ya existe una wiki en ${dir} (${PROFILE_FILE}). No se sobrescribe.`);
+    throw new UserError(`A wiki already exists in ${dir} (${PROFILE_FILE}). It will not be overwritten.`);
   }
   const known = new Map(OPTIONAL_FOLDERS.map((f) => [f.name, f]));
   for (const name of withFolders) {
     if (!known.has(name)) {
-      throw new UserError(`"${name}" no es una carpeta opcional. Opciones: ${[...known.keys()].join(', ')}.`);
+      throw new UserError(`"${name}" is not an optional folder. Options: ${[...known.keys()].join(', ')}.`);
     }
   }
 
   const actor = by ?? `okw/${version}`;
-  const profileText = `# Perfil okw de esta wiki. Ver SPEC.md.\n${stringify({
+  const profileText = `# okw profile of this wiki. See SPEC.md.\n${stringify({
     profile: PROFILE_ID,
     language,
     extra_folders: [],
@@ -46,10 +46,10 @@ export function init({ cwd, dir = 'wiki', withFolders = [], language = 'es', by,
   }
 
   const profile = loadProfile(root);
-  appendLog(root, { kind: 'Init', text: `Wiki creada con el perfil ${PROFILE_ID}.` }, now);
+  appendLog(root, { kind: 'Init', text: `Wiki created with profile ${PROFILE_ID}.` }, now);
   created.push('log.md');
   const indexes = regenerateIndexes(root, profile);
   created.push(...indexes);
 
-  return { root, created, text: [`Wiki creada en ${dir}`, ...created.map((c) => `  ${c}`)].join('\n') };
+  return { root, created, text: [`Wiki created in ${dir}`, ...created.map((c) => `  ${c}`)].join('\n') };
 }

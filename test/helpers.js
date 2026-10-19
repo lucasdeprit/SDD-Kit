@@ -8,7 +8,7 @@ export function tempDir() {
   return { dir, cleanup: () => rmSync(dir, { recursive: true, force: true }) };
 }
 
-// Ejecuta la CLI capturando salida y código de retorno.
+// Runs the CLI capturing output and exit code.
 export async function okw(cwd, ...args) {
   const out = [];
   const err = [];

@@ -7,12 +7,12 @@ import { renderPage } from '../templates.js';
 import { assertKebabPath, humanize, writeText } from '../util.js';
 import { UserError } from '../errors.js';
 
-export const newHelp = `okw new <type> <nombre> --description "..." [--title "..."] [--by <actor>]
+export const newHelp = `okw new <type> <name> --description "..." [--title "..."] [--by <actor>]
 
-Crea una página con frontmatter y esqueleto de secciones, la registra en el
-index.md de su carpeta y apunta la entrada en log.md. El nombre es relativo a
-la carpeta del tipo (p. ej. "state-management" o "bloc/state"). El tipo es el
-nombre en singular: overview, architecture, pattern, convention, workflow,
+Creates a page with frontmatter and a section skeleton, registers it in the
+index.md of its folder and records an entry in log.md. The name is relative to
+the folder of the type (e.g. "state-management" or "bloc/state"). The type is
+the singular name: overview, architecture, pattern, convention, workflow,
 testing, feature, module, interface, operation, troubleshooting.`;
 
 export function newPage({ root, type, name, title, description, by, now = new Date(), version }) {
@@ -20,10 +20,10 @@ export function newPage({ root, type, name, title, description, by, now = new Da
   const folder = findFolderByType(profile, type);
   if (!folder) {
     const valid = profile.folders.map((f) => typeAlias(f.type)).join(', ');
-    throw new UserError(`Tipo desconocido "${type}". Tipos disponibles: ${valid}.`);
+    throw new UserError(`Unknown type "${type}". Available types: ${valid}.`);
   }
   if (!description?.trim()) {
-    throw new UserError('Falta --description: una frase que diga de qué trata la página.');
+    throw new UserError('Missing --description: one sentence saying what the page is about.');
   }
   const slug = name.replace(/\.md$/, '').replace(/^\/+|\/+$/g, '');
   assertKebabPath(slug);
@@ -31,7 +31,7 @@ export function newPage({ root, type, name, title, description, by, now = new Da
   const rel = `${folder.name}/${slug}.md`;
   const file = join(root, rel);
   if (existsSync(file)) {
-    throw new UserError(`Ya existe ${rel}. Edítala en vez de crearla de nuevo.`);
+    throw new UserError(`${rel} already exists. Edit it instead of creating it again.`);
   }
   const pageTitle = title?.trim() || humanize(slug.split('/').pop());
   const text = renderPage({
@@ -53,9 +53,9 @@ export function newPage({ root, type, name, title, description, by, now = new Da
     sections,
     updated: [...indexes, 'log.md'],
     text: [
-      `Creada ${rel} (type: ${folder.type}).`,
-      `Índices actualizados: ${indexes.join(', ') || 'ninguno'}. Entrada añadida a log.md.`,
-      `Rellena estas secciones: ${sections.join(', ')}.`,
+      `Created ${rel} (type: ${folder.type}).`,
+      `Indexes updated: ${indexes.join(', ') || 'none'}. Entry added to log.md.`,
+      `Fill in these sections: ${sections.join(', ')}.`,
     ].join('\n'),
   };
 }
