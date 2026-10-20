@@ -4,7 +4,7 @@ import { stringify } from 'yaml';
 import { CORE_FOLDERS, OPTIONAL_FOLDERS, PROFILE_FILE, PROFILE_ID, loadProfile } from '../profile.js';
 import { regenerateIndexes } from '../indexer.js';
 import { appendLog } from '../logfile.js';
-import { requiredPages } from '../templates.js';
+import { requiredPages, testingStrategyPage } from '../templates.js';
 import { writeText } from '../util.js';
 import { UserError } from '../errors.js';
 
@@ -40,7 +40,7 @@ export function init({ cwd, dir = 'wiki', withFolders = [], language = 'en', by,
     mkdirSync(join(root, folder.name), { recursive: true });
     created.push(`${folder.name}/`);
   }
-  for (const page of requiredPages({ by: actor, now })) {
+  for (const page of [...requiredPages({ by: actor, now }), testingStrategyPage({ by: actor, now })]) {
     writeText(join(root, page.path), page.text);
     created.push(page.path);
   }

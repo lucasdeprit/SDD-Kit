@@ -1,4 +1,5 @@
 import { yamlScalar, isoNow } from './util.js';
+import { CORE_FOLDERS } from './profile.js';
 
 const TODO = (section) => `<!-- TODO: ${section} -->`;
 
@@ -15,6 +16,16 @@ export function renderPage({ folder, title, description, by, status = 'draft', n
   ];
   const sections = folder.sections.map((s) => `# ${s}\n\n${TODO(s)}\n`);
   return `${front.join('\n')}\n\n${sections.join('\n')}`;
+}
+
+// Scaffold of the testing strategy page. `init` and `validate --fix` create it
+// when testing/ has no page; it is not a required name, any testing page counts.
+export function testingStrategyPage({ by, now }) {
+  const folder = CORE_FOLDERS.find((f) => f.name === 'testing');
+  return {
+    path: 'testing/strategy.md',
+    text: renderPage({ folder, title: 'Testing strategy', description: 'How testing is done in this project.', by, now }),
+  };
 }
 
 // Required core pages (SPEC.md section 3). Created by `init`.

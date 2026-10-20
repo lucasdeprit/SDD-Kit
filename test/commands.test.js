@@ -17,6 +17,8 @@ test('init creates the core, indexes, log and required pages', async () => {
     assert.ok(existsSync(join(dir, 'wiki/.okf-profile.yaml')));
     assert.ok(existsSync(join(dir, 'wiki/overview/project.md')));
     assert.ok(existsSync(join(dir, 'wiki/workflows/update-wiki.md')));
+    assert.match(read(dir, 'testing/strategy.md'), /^---\ntype: Testing\ntitle: Testing strategy\n/);
+    assert.match(read(dir, 'testing/index.md'), /\[Testing strategy\]\(\/testing\/strategy\.md\)/);
     assert.match(read(dir, 'index.md'), /^---\nokf_version: "0.2"\n---\n# Index/);
     assert.match(read(dir, 'overview/index.md'), /\[Project\]\(\/overview\/project\.md\) - What the project is/);
     assert.match(read(dir, 'log.md'), /^# Log\n\n## \d{4}-\d{2}-\d{2}\n\* \*\*Init\*\*/);

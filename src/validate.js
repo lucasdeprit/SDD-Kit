@@ -25,7 +25,7 @@ export const DEFAULT_SEVERITY = {
   'frontmatter.verified': 'warning',
   'frontmatter.stale': 'warning',
   'name.kebab-case': 'error',
-  'index.stale': 'error',
+  'index.out-of-date': 'error',
   'link.broken': 'warning',
   'page.orphan': 'warning',
 };
@@ -57,12 +57,7 @@ export function validateWiki(root, profile, { now = new Date() } = {}) {
     }
   }
   if (existsSync(join(root, 'testing')) && !wiki.concepts.some((c) => c.folder === 'testing')) {
-    add(
-      'structure.testing-page',
-      'testing/',
-      'testing/ has no strategy page.',
-      'Create one with: okw new testing strategy --description "How testing is done in this project."',
-    );
+    add('structure.testing-page', 'testing/', 'testing/ has no strategy page.', 'Run "okw validate --fix" to scaffold testing/strategy.md, or create one with "okw new testing <name>".');
   }
   if (!wiki.hasLog) {
     add('okf.log', 'log.md', 'log.md is missing.', 'Run "okw validate --fix" to create it.');
@@ -173,7 +168,7 @@ export function validateWiki(root, profile, { now = new Date() } = {}) {
 
   // Indexes
   for (const rel of regenerateIndexes(root, profile, { check: true })) {
-    add('index.stale', rel, 'Index is missing or out of date.', 'Run "okw index".');
+    add('index.out-of-date', rel, 'This index does not match the pages in its folder (or is missing).', 'Run "okw index" to regenerate it.');
   }
 
   const order = { error: 0, warning: 1 };

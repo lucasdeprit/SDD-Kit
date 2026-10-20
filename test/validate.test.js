@@ -19,21 +19,21 @@ const goodPage = (type, sections, extra = '') =>
 
 async function cleanWiki(dir) {
   await okw(dir, 'init');
-  await okw(dir, 'new', 'testing', 'strategy', '--description', 'How testing is done.');
   writeFileSync(W(dir, 'testing/strategy.md'), goodPage('Testing', ['Scope', 'How to run', 'Rules'], '\nSee [project](/overview/project.md).\n'));
   writeFileSync(W(dir, 'overview/project.md'), goodPage('Overview', ['Purpose', 'Scope'], '\nTesting: [strategy](/testing/strategy.md).\n'));
   writeFileSync(W(dir, 'workflows/update-wiki.md'), goodPage('Workflow', ['Goal', 'Steps']));
   await okw(dir, 'index');
 }
 
-test('a fresh wiki only lacks a testing strategy page', async () => {
+test('a fresh wiki has no errors, only warnings about unfilled content', async () => {
   const { dir, cleanup } = tempDir();
   try {
     await okw(dir, 'init');
     const res = await issues(dir);
-    assert.equal(res.ok, false);
-    assert.equal(res.code, 1);
-    assert.deepEqual(res.issues.filter((i) => i.severity === 'error').map((i) => i.rule), ['structure.testing-page']);
+    assert.equal(res.ok, true);
+    assert.equal(res.code, 0);
+    assert.equal(res.errors, 0);
+    assert.ok(rules(res).includes('page.todo:testing/strategy.md'));
   } finally {
     cleanup();
   }
@@ -154,16 +154,18 @@ test('--fix repairs folders, required pages, sections and indexes, and reports w
     await cleanWiki(dir);
     rmSync(W(dir, 'conventions'), { recursive: true });
     rmSync(W(dir, 'workflows/update-wiki.md'));
+    rmSync(W(dir, 'testing/strategy.md'));
     writeFileSync(W(dir, 'patterns/short.md'), '---\ntype: Pattern\ntitle: Short\ndescription: Short one.\n---\n# How\n\nDone.\n');
     const res = await issues(dir, '--fix');
     assert.ok(res.fixed.some((f) => f.includes('Created folder conventions/')));
     assert.ok(res.fixed.some((f) => f.includes('Recreated workflows/update-wiki.md')));
+    assert.ok(res.fixed.some((f) => f.includes('Created testing/strategy.md')));
     assert.ok(res.fixed.some((f) => f.includes('patterns/short.md')));
     assert.match(read(dir, 'patterns/short.md'), /# When to use\n\n<!-- TODO: When to use -->/);
     const r = rules(res);
     assert.ok(!r.some((x) => x.startsWith('structure.core-folder')));
     assert.ok(!r.some((x) => x.startsWith('page.sections')));
-    assert.ok(!r.some((x) => x.startsWith('index.stale')));
+    assert.ok(!r.some((x) => x.startsWith('index.out-of-date')));
     assert.ok(r.includes('page.todo:patterns/short.md'), 'content problems remain for the agent');
     assert.equal(res.errors, 0);
     assert.equal((await okw(dir, 'index', '--check')).code, 0);
@@ -176,10 +178,12 @@ test('human output lists rule, file, message and fix, and a summary line', async
   const { dir, cleanup } = tempDir();
   try {
     await okw(dir, 'init');
+    rmSync(W(dir, 'testing/strategy.md'));
+    await okw(dir, 'index');
     const r = await okw(dir, 'validate');
     assert.equal(r.code, 1);
     assert.match(r.out, /error\s+structure\.testing-page\s+testing\//);
-    assert.match(r.out, /okw new testing strategy/);
+    assert.match(r.out, /scaffold testing\/strategy\.md/);
     assert.match(r.out, /1 error, \d+ warnings?\. Validation failed\./);
   } finally {
     cleanup();

@@ -91,7 +91,7 @@ A page may have more sections. Only these are required.
 
 - `overview/project.md`: what the project is.
 - `workflows/update-wiki.md`: when and how the wiki is updated (see section 6).
-- `testing/` must contain at least one testing strategy page (so `testing/index.md` links to it).
+- `testing/` must contain at least one testing strategy page (so `testing/index.md` links to it). `okw init` scaffolds `testing/strategy.md` (title, frontmatter and the required sections, unfilled); any page in `testing/` satisfies the rule, so a project may rename or replace it.
 
 ## 4. Frontmatter
 
@@ -170,7 +170,7 @@ Every rule has a stable id that can be used in `severity`.
 | `okf.log` | Date headings in `log.md` are `YYYY-MM-DD` | error | |
 | `structure.core-folder` | Every core folder exists | error | yes |
 | `structure.required-page` | Required pages exist | error | yes |
-| `structure.testing-page` | `testing/` has at least one strategy page | error | |
+| `structure.testing-page` | `testing/` has at least one strategy page | error | yes (scaffolds `testing/strategy.md`) |
 | `structure.unknown-folder` | Pages live in a core, optional or declared folder | warning | |
 | `page.type` | `type` matches the type of the folder | error | |
 | `page.sections` | Required sections are present | error | yes |
@@ -182,7 +182,7 @@ Every rule has a stable id that can be used in `severity`.
 | `frontmatter.verified` | `verified` present | warning | |
 | `frontmatter.stale` | `stale_after` is a valid date and not yet reached | warning | |
 | `name.kebab-case` | File and folder names are `kebab-case` | error | |
-| `index.stale` | Every `index.md` is up to date (missing pages, dead entries, missing indexes) | error | yes |
+| `index.out-of-date` | Every `index.md` matches the pages in its folder: no page missing from it, no entry pointing to a page that no longer exists, no folder without an `index.md` | error | yes |
 | `link.broken` | Internal links point to existing pages | warning | |
 | `page.orphan` | Some other concept page links to it | warning | |
 

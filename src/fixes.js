@@ -3,7 +3,7 @@ import { join } from 'node:path';
 import { CORE_FOLDERS } from './profile.js';
 import { loadWiki, scanBody } from './pages.js';
 import { regenerateIndexes } from './indexer.js';
-import { requiredPages } from './templates.js';
+import { requiredPages, testingStrategyPage } from './templates.js';
 import { writeText } from './util.js';
 
 // Repairs only what can be decided mechanically. Returns a list of what was done.
@@ -25,6 +25,12 @@ export function applyFixes(root, profile, { by, now }) {
       writeText(join(root, page.path), page.text);
       done.push(`Recreated ${page.path}`);
     }
+  }
+
+  if (!loadWiki(root).concepts.some((c) => c.folder === 'testing')) {
+    const page = testingStrategyPage({ by, now });
+    writeText(join(root, page.path), page.text);
+    done.push(`Created ${page.path}`);
   }
 
   const foldersByName = new Map(profile.folders.map((f) => [f.name, f]));
