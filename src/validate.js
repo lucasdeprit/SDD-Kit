@@ -119,7 +119,7 @@ export function validateWiki(root, profile, { now = new Date() } = {}) {
       if (Number.isNaN(due.getTime())) {
         add('frontmatter.stale', rel, `stale_after "${data.stale_after}" is not a valid ISO 8601 date.`, 'Use a date such as 2026-12-31.');
       } else if (now >= due) {
-        add('frontmatter.stale', rel, `Page is stale since ${data.stale_after}.`, `Review it against the code, then run "okw verify ${rel}" and update stale_after.`);
+        add('frontmatter.stale', rel, `Page is stale since ${data.stale_after}.`, `Review it against the code, then run "okw verify ${rel} --stale-after <date>".`);
       }
     }
 

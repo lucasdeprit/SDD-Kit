@@ -6,6 +6,8 @@ import { init, initHelp } from './commands/init.js';
 import { newPage, newHelp } from './commands/new.js';
 import { indexCommand, indexHelp } from './commands/index.js';
 import { validateCommand, validateHelp } from './commands/validate.js';
+import { verifyCommand, verifyHelp } from './commands/verify.js';
+import { statusCommand, statusHelp } from './commands/status.js';
 
 const { version } = JSON.parse(readFileSync(new URL('../package.json', import.meta.url), 'utf8'));
 
@@ -16,6 +18,8 @@ Commands:
   new <type> <name>         Create a page and register it in its index
   index [--check]           Regenerate the index.md files
   validate [--fix]          Check the wiki against OKF and the profile
+  verify <path>             Record that a page has been reviewed
+  status                    Summarise stale, unverified, draft and deprecated pages
 
 Common options:
   --wiki <folder>           Wiki to operate on (by default it is searched from the current directory)
@@ -67,6 +71,33 @@ const COMMANDS = {
     options: { check: { type: 'boolean' } },
     needsWiki: true,
     run: ({ values, root }) => indexCommand({ root, check: values.check }),
+  },
+  verify: {
+    help: verifyHelp,
+    options: {
+      by: { type: 'string' },
+      status: { type: 'string' },
+      'stale-after': { type: 'string' },
+      force: { type: 'boolean' },
+    },
+    needsWiki: true,
+    run: ({ values, positionals, root, cwd }) =>
+      verifyCommand({
+        root,
+        cwd,
+        path: positionals[0],
+        by: values.by,
+        status: values.status,
+        staleAfter: values['stale-after'],
+        force: values.force,
+        version,
+      }),
+  },
+  status: {
+    help: statusHelp,
+    options: { only: { type: 'string' } },
+    needsWiki: true,
+    run: ({ values, root }) => statusCommand({ root, only: values.only }),
   },
   validate: {
     help: validateHelp,

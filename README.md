@@ -6,7 +6,7 @@ The CLI does the mechanical work (structure, indexes, frontmatter, validation) s
 
 ## Status
 
-Work in progress. Available: `init`, `new`, `index`, `validate`. Pending: `verify`, `status`, and generating skills for agents (Copilot).
+Work in progress. Available: `init`, `new`, `index`, `validate`, `verify`, `status`. Pending: generating skills for agents (Copilot).
 
 ## Usage
 
@@ -15,6 +15,8 @@ node bin/okw.js init docs/wiki --with features,modules
 node bin/okw.js new pattern state-management --description "How screen state is structured."
 node bin/okw.js index --check
 node bin/okw.js validate --fix
+node bin/okw.js verify patterns/state-management --by human:ana --status stable
+node bin/okw.js status
 ```
 
 Every command accepts `--json` and `--wiki <folder>`. Requires Node 20 or later.

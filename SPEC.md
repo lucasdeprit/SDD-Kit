@@ -187,8 +187,8 @@ Every rule has a stable id that can be used in `severity`.
 | `new <type> <name>` | Creates a page with its template and frontmatter and registers it in the index |
 | `validate` | Runs the checks of section 8; `--fix` repairs the mechanical ones |
 | `index` | Regenerates the `index.md` files |
-| `status` | Lists stale, unverified, draft or deprecated pages |
-| `verify <path>` | Records a verification |
+| `status` | Summarises pages by status and trust tier, and lists those that are stale, unverified, draft, deprecated or have unfilled TODOs (`--only <flag>` filters) |
+| `verify <path>` | Records a verification in `verified` (`--by <actor>`, one entry per actor); can also set `--status` and `--stale-after`. Refuses pages with unfilled TODOs unless `--force` |
 
 ## 10. Agent integration
 
