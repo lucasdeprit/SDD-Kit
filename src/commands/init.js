@@ -7,14 +7,14 @@ import { requiredPages, testingStrategyPage } from '../templates.js';
 import { writeText } from '../util.js';
 import { UserError } from '../errors.js';
 
-export const initHelp = `okw init [folder] [--with features,modules] [--language en] [--by <actor>]
+export const initHelp = `okw init [folder] [--with features,modules] [--language en]
 
 Creates a wiki with the base profile core (in ./wiki by default).
   --with      optional folders to create now: ${OPTIONAL_FOLDERS.map((f) => f.name).join(', ')}
   --language  language of the wiki content, informational only (default: en)
-  --by        actor recorded in "generated" (default: okw/<version>)`;
+`;
 
-export function init({ cwd, dir = 'wiki', withFolders = [], language = 'en', by, now = new Date(), version }) {
+export function init({ cwd, dir = 'wiki', withFolders = [], language = 'en' }) {
   const root = resolve(cwd, dir);
   if (existsSync(join(root, PROFILE_FILE))) {
     throw new UserError(`A wiki already exists in ${dir} (${PROFILE_FILE}). It will not be overwritten.`);
@@ -26,7 +26,6 @@ export function init({ cwd, dir = 'wiki', withFolders = [], language = 'en', by,
     }
   }
 
-  const actor = by ?? `okw/${version}`;
   const profileText = `# okw profile of this wiki. See SPEC.md.\n${stringify({
     profile: PROFILE_ID,
     language,
@@ -39,7 +38,7 @@ export function init({ cwd, dir = 'wiki', withFolders = [], language = 'en', by,
     mkdirSync(join(root, folder.name), { recursive: true });
     created.push(`${folder.name}/`);
   }
-  for (const page of [...requiredPages({ by: actor, now }), testingStrategyPage({ by: actor, now })]) {
+  for (const page of [...requiredPages(), testingStrategyPage()]) {
     writeText(join(root, page.path), page.text);
     created.push(page.path);
   }

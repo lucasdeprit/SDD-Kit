@@ -6,7 +6,7 @@ import { renderPage } from '../templates.js';
 import { assertKebabPath, humanize, writeText } from '../util.js';
 import { UserError } from '../errors.js';
 
-export const newHelp = `okw new <type> <name> --description "..." [--title "..."] [--by <actor>]
+export const newHelp = `okw new <type> <name> --description "..." [--title "..."]
 
 Creates a page with frontmatter and a section skeleton, registers it in the
 index.md of its folder. The name is relative to
@@ -14,7 +14,7 @@ the folder of the type (e.g. "state-management" or "bloc/state"). The type is
 the singular name: overview, architecture, pattern, convention, workflow,
 testing, feature, module, interface, operation, troubleshooting.`;
 
-export function newPage({ root, type, name, title, description, by, now = new Date(), version }) {
+export function newPage({ root, type, name, title, description }) {
   const profile = loadProfile(root);
   const folder = findFolderByType(profile, type);
   if (!folder) {
@@ -37,8 +37,6 @@ export function newPage({ root, type, name, title, description, by, now = new Da
     folder,
     title: pageTitle,
     description: description.trim(),
-    by: by ?? `okw/${version}`,
-    now,
   });
   writeText(file, text);
 

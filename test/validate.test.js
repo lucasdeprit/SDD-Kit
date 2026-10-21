@@ -15,7 +15,7 @@ const rules = (res) => res.issues.map((i) => `${i.rule}:${i.file}`);
 
 // A page with every section filled in and verified, so it raises no issues.
 const goodPage = (type, sections, extra = '') =>
-  `---\ntype: ${type}\ntitle: Good\ndescription: A good page.\ngenerated: { by: human:me, at: 2026-10-19T09:00:00Z }\nverified:\n  - { by: human:me, at: 2026-10-19T09:00:00Z }\n---\n\n${sections.map((s) => `# ${s}\n\nContent.\n`).join('\n')}${extra}`;
+  `---\ntype: ${type}\ntitle: Good\ndescription: A good page.\nverified:\n  - { by: human:me, at: 2026-10-19T09:00:00Z }\n---\n\n${sections.map((s) => `# ${s}\n\nContent.\n`).join('\n')}${extra}`;
 
 async function cleanWiki(dir) {
   await okw(dir, 'init');
@@ -25,7 +25,7 @@ async function cleanWiki(dir) {
   await okw(dir, 'index');
 }
 
-test('a fresh wiki has no errors, only warnings about unfilled content', async () => {
+test('a fresh wiki has no errors, only warnings about unreviewed and unfilled pages', async () => {
   const { dir, cleanup } = tempDir();
   try {
     await okw(dir, 'init');
@@ -52,7 +52,7 @@ test('a complete wiki validates with no issues', async () => {
   }
 });
 
-test('new pages raise TODO and unverified warnings, not errors', async () => {
+test('new pages raise TODO and unreviewed warnings, not errors', async () => {
   const { dir, cleanup } = tempDir();
   try {
     await cleanWiki(dir);
@@ -95,19 +95,18 @@ test('reports type, sections, frontmatter, names and status errors with a fix hi
   }
 });
 
-test('detects stale pages, broken links and unknown folders', async () => {
+test('detects broken links and unknown folders', async () => {
   const { dir, cleanup } = tempDir();
   try {
     await cleanWiki(dir);
     writeFileSync(
       W(dir, 'conventions/naming.md'),
-      goodPage('Convention', ['Rule', 'Examples'], '\nSee [x](/nope/missing.md) and [web](https://example.com/a.md).\n').replace('verified:', 'stale_after: 2020-01-01\nverified:'),
+      goodPage('Convention', ['Rule', 'Examples'], '\nSee [x](/nope/missing.md) and [web](https://example.com/a.md).\n'),
     );
     mkdirSync(W(dir, 'misc'));
     writeFileSync(W(dir, 'misc/note.md'), goodPage('Note', []));
     await okw(dir, 'index');
     const r = rules(await issues(dir));
-    assert.ok(r.includes('frontmatter.stale:conventions/naming.md'));
     assert.ok(r.includes('link.broken:conventions/naming.md'));
     assert.ok(r.includes('structure.unknown-folder:misc/note.md'));
     assert.equal(r.filter((x) => x.startsWith('link.broken')).length, 1, 'external links are ignored');

@@ -19,7 +19,7 @@ Commands:
   index [--check]           Regenerate the index.md files
   validate [--fix]          Check the wiki against OKF and the profile
   verify <path>             Record that a page has been reviewed
-  status                    Summarise stale, unverified, draft and deprecated pages
+  status                    Summarise which pages are unreviewed, outdated or deprecated
 
 Common options:
   --wiki <folder>           Wiki to operate on (by default it is searched from the current directory)
@@ -38,20 +38,18 @@ const COMMON = {
 const COMMANDS = {
   init: {
     help: initHelp,
-    options: { with: { type: 'string' }, language: { type: 'string' }, by: { type: 'string' } },
+    options: { with: { type: 'string' }, language: { type: 'string' } },
     run: ({ values, positionals, cwd }) =>
       init({
         cwd,
         dir: positionals[0],
         withFolders: values.with ? values.with.split(',').map((s) => s.trim()).filter(Boolean) : [],
         language: values.language,
-        by: values.by,
-        version,
       }),
   },
   new: {
     help: newHelp,
-    options: { title: { type: 'string' }, description: { type: 'string' }, by: { type: 'string' } },
+    options: { title: { type: 'string' }, description: { type: 'string' } },
     needsWiki: true,
     run: ({ values, positionals, root }) => {
       if (positionals.length < 2) throw new UserError('Usage: okw new <type> <name> --description "..."');
@@ -61,8 +59,6 @@ const COMMANDS = {
         name: positionals[1],
         title: values.title,
         description: values.description,
-        by: values.by,
-        version,
       });
     },
   },
@@ -74,12 +70,7 @@ const COMMANDS = {
   },
   verify: {
     help: verifyHelp,
-    options: {
-      by: { type: 'string' },
-      status: { type: 'string' },
-      'stale-after': { type: 'string' },
-      force: { type: 'boolean' },
-    },
+    options: { by: { type: 'string' }, force: { type: 'boolean' } },
     needsWiki: true,
     run: ({ values, positionals, root, cwd }) =>
       verifyCommand({
@@ -87,8 +78,6 @@ const COMMANDS = {
         cwd,
         path: positionals[0],
         by: values.by,
-        status: values.status,
-        staleAfter: values['stale-after'],
         force: values.force,
         version,
       }),
@@ -103,7 +92,7 @@ const COMMANDS = {
     help: validateHelp,
     options: { fix: { type: 'boolean' }, strict: { type: 'boolean' } },
     needsWiki: true,
-    run: ({ values, root }) => validateCommand({ root, fix: values.fix, strict: values.strict, version }),
+    run: ({ values, root }) => validateCommand({ root, fix: values.fix, strict: values.strict }),
   },
 };
 

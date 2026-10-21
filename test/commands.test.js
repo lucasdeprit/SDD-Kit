@@ -64,8 +64,7 @@ test('new creates the page with a skeleton and indexes it', async () => {
     assert.equal(r.code, 0, r.err);
     const page = read(dir, 'patterns/state-management.md');
     assert.match(page, /^---\ntype: Pattern\ntitle: State management\ndescription: Screen state\.\n/);
-    assert.match(page, /generated: \{ by: okw\/0\.1\.0, at: \d{4}-\d{2}-\d{2}T[\d:]+Z \}/);
-    assert.match(page, /status: draft/);
+    assert.ok(!/generated|status|verified/.test(page.split('\n---\n')[0]), 'new pages start with no trust fields');
     for (const s of ['When to use', 'How', 'Example', 'Why']) assert.match(page, new RegExp(`# ${s}\\n`));
     assert.match(read(dir, 'patterns/index.md'), /\[State management\]\(\/patterns\/state-management\.md\) - Screen state\./);
     assert.ok(!existsSync(join(dir, 'wiki/log.md')));

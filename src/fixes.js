@@ -7,7 +7,7 @@ import { requiredPages, testingStrategyPage } from './templates.js';
 import { writeText } from './util.js';
 
 // Repairs only what can be decided mechanically. Returns a list of what was done.
-export function applyFixes(root, profile, { by, now }) {
+export function applyFixes(root, profile) {
   const done = [];
 
   for (const folder of CORE_FOLDERS) {
@@ -16,7 +16,7 @@ export function applyFixes(root, profile, { by, now }) {
       done.push(`Created folder ${folder.name}/`);
     }
   }
-  for (const page of requiredPages({ by, now })) {
+  for (const page of requiredPages()) {
     if (!existsSync(join(root, page.path))) {
       writeText(join(root, page.path), page.text);
       done.push(`Recreated ${page.path}`);
@@ -24,7 +24,7 @@ export function applyFixes(root, profile, { by, now }) {
   }
 
   if (!loadWiki(root).concepts.some((c) => c.folder === 'testing')) {
-    const page = testingStrategyPage({ by, now });
+    const page = testingStrategyPage();
     writeText(join(root, page.path), page.text);
     done.push(`Created ${page.path}`);
   }

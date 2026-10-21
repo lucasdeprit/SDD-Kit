@@ -15,7 +15,7 @@ node bin/okw.js init docs/wiki --with features,modules
 node bin/okw.js new pattern state-management --description "How screen state is structured."
 node bin/okw.js index --check
 node bin/okw.js validate --fix
-node bin/okw.js verify patterns/state-management --by human:ana --status stable
+node bin/okw.js verify patterns/state-management --by human:ana
 node bin/okw.js status
 ```
 

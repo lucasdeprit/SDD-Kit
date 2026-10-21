@@ -5,6 +5,7 @@ import { loadWiki, scanBody } from './pages.js';
 import { regenerateIndexes } from './indexer.js';
 import { KEBAB } from './util.js';
 import { requiredPages } from './templates.js';
+import { trustState } from './trust.js';
 
 export const DEFAULT_SEVERITY = {
   'okf.frontmatter': 'error',
@@ -20,9 +21,8 @@ export const DEFAULT_SEVERITY = {
   'frontmatter.title': 'error',
   'frontmatter.description': 'error',
   'frontmatter.status': 'error',
-  'frontmatter.generated': 'warning',
   'frontmatter.verified': 'warning',
-  'frontmatter.stale': 'warning',
+  'frontmatter.verified-outdated': 'warning',
   'name.kebab-case': 'error',
   'index.out-of-date': 'error',
   'link.broken': 'warning',
@@ -33,7 +33,7 @@ const STATUSES = ['draft', 'stable', 'deprecated'];
 const isBlank = (v) => v === undefined || v === null || String(v).trim() === '';
 
 // Returns the list of issues: { rule, severity, file, message, fix }.
-export function validateWiki(root, profile, { now = new Date() } = {}) {
+export function validateWiki(root, profile) {
   const issues = [];
   const add = (rule, file, message, fix) => {
     const severity = profile.severity[rule] ?? DEFAULT_SEVERITY[rule];
@@ -50,7 +50,7 @@ export function validateWiki(root, profile, { now = new Date() } = {}) {
       add('structure.core-folder', `${folder.name}/`, `Core folder "${folder.name}/" is missing.`, 'Run "okw validate --fix" to create it.');
     }
   }
-  for (const page of requiredPages({ by: 'okw', now })) {
+  for (const page of requiredPages()) {
     if (!existsSync(join(root, page.path))) {
       add('structure.required-page', page.path, `Required page ${page.path} is missing.`, 'Run "okw validate --fix" to recreate it.');
     }
@@ -108,18 +108,13 @@ export function validateWiki(root, profile, { now = new Date() } = {}) {
     if (data.status !== undefined && !STATUSES.includes(data.status)) {
       add('frontmatter.status', rel, `status "${data.status}" is not valid.`, `Use one of: ${STATUSES.join(', ')}.`);
     }
-    if (isBlank(data.generated?.by)) {
-      add('frontmatter.generated', rel, 'Frontmatter has no "generated" with "by".', 'Add: generated: { by: <actor>, at: <ISO date-time> }.');
-    }
-    if (isBlank(data.verified)) {
-      add('frontmatter.verified', rel, 'Page has not been verified.', `Run "okw verify ${rel}" after reviewing it.`);
-    }
-    if (data.stale_after !== undefined) {
-      const due = new Date(String(data.stale_after));
-      if (Number.isNaN(due.getTime())) {
-        add('frontmatter.stale', rel, `stale_after "${data.stale_after}" is not a valid ISO 8601 date.`, 'Use a date such as 2026-12-31.');
-      } else if (now >= due) {
-        add('frontmatter.stale', rel, `Page is stale since ${data.stale_after}.`, `Review it against the code, then run "okw verify ${rel} --stale-after <date>".`);
+    if (data.status !== 'deprecated') {
+      const { tier, outdated, last } = trustState(data, body);
+      const review = `Review the page and run "okw verify ${rel} --by human:<id>".`;
+      if (outdated) {
+        add('frontmatter.verified-outdated', rel, `Page changed after it was verified (last by ${last?.by ?? 'unknown'} on ${String(last?.at ?? '?').slice(0, 10)}).`, review);
+      } else if (tier === 'unverified') {
+        add('frontmatter.verified', rel, 'Page has not been reviewed.', review);
       }
     }
 
@@ -147,7 +142,7 @@ export function validateWiki(root, profile, { now = new Date() } = {}) {
       }
     }
   }
-  const entryPoints = new Set(requiredPages({ by: 'okw', now }).map((p) => p.path));
+  const entryPoints = new Set(requiredPages().map((p) => p.path));
   for (const page of wiki.concepts) {
     if (page.data && !entryPoints.has(page.rel) && !linkedFrom.has(page.rel)) {
       add('page.orphan', page.rel, 'No other page links to this one.', 'Link it from a related page (for example the workflow or architecture page that uses it).');

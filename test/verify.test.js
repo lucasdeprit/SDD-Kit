@@ -7,9 +7,9 @@ import { tempDir, okw } from './helpers.js';
 const W = (dir, rel) => join(dir, 'wiki', rel);
 const read = (dir, rel) => readFileSync(W(dir, rel), 'utf8');
 
-// A pattern page whose placeholders are filled in, with frontmatter comments to check they survive.
+// A pattern page whose placeholders are filled in, with a frontmatter comment to check it survives.
 const filled = (extraFront = '') =>
-  `---\n# keep this comment\ntype: Pattern\ntitle: State\ndescription: State.\ngenerated: { by: okw/0.1.0, at: 2026-10-19T09:00:00Z }\nstatus: draft\n${extraFront}---\n\n# When to use\n\nAlways.\n\n# How\n\nLike this.\n\n# Example\n\nCode.\n\n# Why\n\nBecause.\n`;
+  `---\n# keep this comment\ntype: Pattern\ntitle: State\ndescription: State.\n${extraFront}---\n\n# When to use\n\nAlways.\n\n# How\n\nLike this.\n\n# Example\n\nCode.\n\n# Why\n\nBecause.\n`;
 
 async function setup(dir, front) {
   await okw(dir, 'init');
@@ -17,7 +17,10 @@ async function setup(dir, front) {
   writeFileSync(W(dir, 'patterns/state.md'), filled(front));
 }
 
-test('verify adds a { by, at } entry and keeps the rest of the file intact', async () => {
+const status = async (dir, ...args) => JSON.parse((await okw(dir, 'status', '--json', ...args)).out);
+const flagsOf = (res, path) => res.pages.find((p) => p.path === path)?.flags;
+
+test('verify adds { by, at, hash } and keeps the rest of the file intact', async () => {
   const { dir, cleanup } = tempDir();
   try {
     await setup(dir);
@@ -28,8 +31,7 @@ test('verify adds a { by, at } entry and keeps the rest of the file intact', asy
     assert.equal(data.verified.length, 1);
     const page = read(dir, 'patterns/state.md');
     assert.match(page, /# keep this comment/);
-    assert.match(page, /generated: \{ by: okw\/0\.1\.0, at: 2026-10-19T09:00:00Z \}/);
-    assert.match(page, /verified:\n  - \{ by: human:ana, at: \d{4}-\d{2}-\d{2}T[\d:]+Z \}/);
+    assert.match(page, /verified:\n  - \{ by: human:ana, at: \d{4}-\d{2}-\d{2}T[\d:]+Z, hash: [0-9a-f]{16} \}/);
     assert.match(page, /\n---\n\n# When to use\n\nAlways\.\n/);
   } finally {
     cleanup();
@@ -51,7 +53,7 @@ test('verify replaces the entry of the same actor and keeps the others', async (
   }
 });
 
-test('verify converts a single { by, at } mapping into a list', async () => {
+test('verify converts a single hand-written mapping into a list', async () => {
   const { dir, cleanup } = tempDir();
   try {
     await setup(dir, 'verified: { by: human:bo, at: 2026-10-01T00:00:00Z }\n');
@@ -75,16 +77,54 @@ test('verify defaults to a machine actor, and honours OKW_ACTOR', async () => {
   }
 });
 
-test('verify can set status and stale_after', async () => {
+test('editing a verified page makes the verification outdated until it is verified again', async () => {
   const { dir, cleanup } = tempDir();
   try {
     await setup(dir);
-    await okw(dir, 'verify', 'patterns/state', '--by', 'human:ana', '--status', 'stable', '--stale-after', '2026-12-31');
+    await okw(dir, 'verify', 'patterns/state', '--by', 'human:ana');
+    assert.ok(!flagsOf(await status(dir), 'patterns/state.md')?.length);
+    assert.ok(!/frontmatter\.verified\S*\s+patterns\/state\.md/.test((await okw(dir, 'validate')).out));
+
+    writeFileSync(W(dir, 'patterns/state.md'), read(dir, 'patterns/state.md').replace('Because.', 'Because of this.'));
+    const after = await status(dir);
+    assert.deepEqual(flagsOf(after, 'patterns/state.md'), ['outdated']);
+    assert.equal(after.by_trust.outdated, 1);
+    const v = JSON.parse((await okw(dir, 'validate', '--json')).out);
+    assert.ok(v.issues.some((i) => i.rule === 'frontmatter.verified-outdated' && i.file === 'patterns/state.md'));
+
+    await okw(dir, 'verify', 'patterns/state', '--by', 'human:ana');
+    assert.ok(!flagsOf(await status(dir), 'patterns/state.md')?.length);
+  } finally {
+    cleanup();
+  }
+});
+
+test('changing status does not invalidate a verification; re-verifying drops outdated entries of others', async () => {
+  const { dir, cleanup } = tempDir();
+  try {
+    await setup(dir);
+    await okw(dir, 'verify', 'patterns/state', '--by', 'process:ci');
+    writeFileSync(W(dir, 'patterns/state.md'), read(dir, 'patterns/state.md').replace('type: Pattern', 'status: stable\ntype: Pattern'));
+    assert.ok(!flagsOf(await status(dir), 'patterns/state.md')?.length);
+
+    writeFileSync(W(dir, 'patterns/state.md'), read(dir, 'patterns/state.md').replace('Code.', 'More code.'));
+    await okw(dir, 'verify', 'patterns/state', '--by', 'human:ana');
     const page = read(dir, 'patterns/state.md');
-    assert.match(page, /status: stable/);
-    assert.match(page, /stale_after: 2026-12-31/);
-    assert.ok(!/status: draft/.test(page));
-    assert.equal((await okw(dir, 'validate', '--json')).code, 0);
+    assert.ok(!page.includes('process:ci'), 'the outdated entry of another actor is dropped');
+    assert.match(page, /human:ana/);
+  } finally {
+    cleanup();
+  }
+});
+
+test('a verification written by hand (no hash) is accepted and never outdated', async () => {
+  const { dir, cleanup } = tempDir();
+  try {
+    await setup(dir, 'verified:\n  - { by: human:ana, at: 2026-10-01T00:00:00Z }\n');
+    assert.ok(!flagsOf(await status(dir), 'patterns/state.md')?.length);
+    writeFileSync(W(dir, 'patterns/state.md'), read(dir, 'patterns/state.md').replace('Because.', 'Changed.'));
+    assert.ok(!flagsOf(await status(dir), 'patterns/state.md')?.length);
+    assert.equal((await status(dir)).by_trust['human-reviewed'], 1);
   } finally {
     cleanup();
   }
@@ -113,8 +153,6 @@ test('verify validates its inputs', async () => {
     assert.match((await okw(dir, 'verify')).err, /Usage: okw verify/);
     assert.match((await okw(dir, 'verify', 'patterns/nope')).err, /Page not found/);
     assert.match((await okw(dir, 'verify', 'patterns/state', '--by', 'ana')).err, /Invalid actor/);
-    assert.match((await okw(dir, 'verify', 'patterns/state', '--status', 'ok')).err, /Invalid status/);
-    assert.match((await okw(dir, 'verify', 'patterns/state', '--stale-after', 'soon')).err, /Invalid --stale-after/);
     writeFileSync(W(dir, 'patterns/raw.md'), '# no frontmatter\n');
     assert.match((await okw(dir, 'verify', 'patterns/raw')).err, /no parseable frontmatter/);
   } finally {
@@ -134,24 +172,26 @@ test('verify accepts a path relative to the current directory', async () => {
   }
 });
 
-test('status summarises states and trust tiers and lists pages needing attention', async () => {
+test('status counts trust tiers, lists pages needing attention and skips deprecated pages', async () => {
   const { dir, cleanup } = tempDir();
   try {
-    await setup(dir, 'stale_after: 2020-01-01\n');
-    await okw(dir, 'verify', 'patterns/state', '--by', 'human:ana', '--status', 'stable');
-    writeFileSync(W(dir, 'patterns/old.md'), filled().replace('title: State', 'title: Old').replace('status: draft', 'status: deprecated'));
+    await setup(dir);
+    await okw(dir, 'verify', 'patterns/state', '--by', 'human:ana');
+    writeFileSync(W(dir, 'patterns/old.md'), filled('status: deprecated\n').replace('title: State', 'title: Old'));
     await okw(dir, 'index');
-    const r = JSON.parse((await okw(dir, 'status', '--json')).out);
+    const r = await status(dir);
     assert.equal(r.total, 5);
-    assert.equal(r.by_status.deprecated, 1);
+    assert.equal(r.deprecated, 1);
     assert.equal(r.by_trust['human-reviewed'], 1);
-    const flags = Object.fromEntries(r.pages.map((p) => [p.path, p.flags]));
-    assert.deepEqual(flags['patterns/state.md'], ['stale']);
-    assert.deepEqual(flags['patterns/old.md'], ['unverified', 'deprecated']);
-    assert.ok(flags['testing/strategy.md'].includes('todo'));
+    assert.equal(r.by_trust.unverified, 3);
+    assert.deepEqual(flagsOf(r, 'patterns/old.md'), ['deprecated']);
+    assert.ok(flagsOf(r, 'testing/strategy.md').includes('unverified'));
+    assert.ok(flagsOf(r, 'testing/strategy.md').includes('todo'));
+    const v = JSON.parse((await okw(dir, 'validate', '--json')).out);
+    assert.ok(!v.issues.some((i) => i.file === 'patterns/old.md' && i.rule.startsWith('frontmatter.verified')));
     const text = (await okw(dir, 'status')).out;
-    assert.match(text, /5 pages/);
-    assert.match(text, /patterns\/state\.md\s+stale since 2020-01-01/);
+    assert.match(text, /5 pages \(1 deprecated\)/);
+    assert.match(text, /Review: 1 human-reviewed, 0 machine-confirmed, 3 unverified, 0 outdated/);
   } finally {
     cleanup();
   }
@@ -161,11 +201,10 @@ test('status --only filters and validates the filter', async () => {
   const { dir, cleanup } = tempDir();
   try {
     await setup(dir);
-    const r = JSON.parse((await okw(dir, 'status', '--only', 'todo', '--json')).out);
+    const r = await status(dir, '--only', 'todo');
     assert.ok(r.pages.length > 0 && r.pages.every((p) => p.flags.includes('todo')));
     assert.ok(!r.pages.some((p) => p.path === 'patterns/state.md'));
-    const none = await okw(dir, 'status', '--only', 'stale');
-    assert.match(none.out, /No pages flagged "stale"/);
+    assert.match((await okw(dir, 'status', '--only', 'outdated')).out, /No pages flagged "outdated"/);
     assert.equal((await okw(dir, 'status', '--only', 'wat')).code, 1);
   } finally {
     cleanup();

@@ -11,10 +11,10 @@ Exits with code 1 if there is any error (with --strict, any warning too).
   --strict  treat warnings as failures
   --json    print every issue as { rule, severity, file, message, fix }`;
 
-export function validateCommand({ root, fix = false, strict = false, now = new Date(), version }) {
+export function validateCommand({ root, fix = false, strict = false }) {
   const profile = loadProfile(root);
-  const fixed = fix ? applyFixes(root, profile, { by: `okw/${version}`, now }) : [];
-  const issues = validateWiki(root, profile, { now });
+  const fixed = fix ? applyFixes(root, profile) : [];
+  const issues = validateWiki(root, profile);
   const errors = issues.filter((i) => i.severity === 'error').length;
   const warnings = issues.length - errors;
   const ok = errors === 0 && !(strict && warnings > 0);

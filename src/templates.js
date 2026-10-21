@@ -1,36 +1,26 @@
-import { yamlScalar, isoNow } from './util.js';
+import { yamlScalar } from './util.js';
 import { CORE_FOLDERS } from './profile.js';
 
 const TODO = (section) => `<!-- TODO: ${section} -->`;
 
-export function renderPage({ folder, title, description, by, status = 'draft', now = new Date() }) {
-  const at = isoNow(now);
-  const front = [
-    '---',
-    `type: ${yamlScalar(folder.type)}`,
-    `title: ${yamlScalar(title)}`,
-    `description: ${yamlScalar(description)}`,
-    `generated: { by: ${yamlScalar(by)}, at: ${at} }`,
-    `status: ${status}`,
-    '---',
-  ];
+export function renderPage({ folder, title, description }) {
+  const front = ['---', `type: ${yamlScalar(folder.type)}`, `title: ${yamlScalar(title)}`, `description: ${yamlScalar(description)}`, '---'];
   const sections = folder.sections.map((s) => `# ${s}\n\n${TODO(s)}\n`);
   return `${front.join('\n')}\n\n${sections.join('\n')}`;
 }
 
 // Scaffold of the testing strategy page. `init` and `validate --fix` create it
 // when testing/ has no page; it is not a required name, any testing page counts.
-export function testingStrategyPage({ by, now }) {
+export function testingStrategyPage() {
   const folder = CORE_FOLDERS.find((f) => f.name === 'testing');
   return {
     path: 'testing/strategy.md',
-    text: renderPage({ folder, title: 'Testing strategy', description: 'How testing is done in this project.', by, now }),
+    text: renderPage({ folder, title: 'Testing strategy', description: 'How testing is done in this project.' }),
   };
 }
 
 // Required core pages (SPEC.md section 3). Created by `init`.
-export function requiredPages({ by, now }) {
-  const stamp = { by, now };
+export function requiredPages() {
   return [
     {
       path: 'overview/project.md',
@@ -39,7 +29,6 @@ export function requiredPages({ by, now }) {
           folder: { type: 'Overview', sections: [] },
           title: 'Project',
           description: 'What the project is and who it is for.',
-          ...stamp,
         }).trimEnd(),
         '',
         `# Purpose\n\n${TODO('Purpose')}\n`,
@@ -53,8 +42,6 @@ export function requiredPages({ by, now }) {
           folder: { type: 'Workflow', sections: [] },
           title: 'Update the wiki',
           description: 'When and how this wiki is updated.',
-          ...stamp,
-          status: 'stable',
         }).trimEnd(),
         '',
         UPDATE_WIKI_BODY,
