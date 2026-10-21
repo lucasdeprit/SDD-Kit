@@ -44,13 +44,18 @@ test('init --with creates optional folders and rejects unknown names', async () 
   }
 });
 
-test('init does not overwrite an existing wiki', async () => {
+test('init in a project that already has a wiki refreshes agent files and leaves the pages alone', async () => {
   const { dir, cleanup } = tempDir();
   try {
     await okw(dir, 'init');
+    writeFileSync(join(dir, 'wiki/overview/project.md'), 'my edits\n');
     const again = await okw(dir, 'init');
-    assert.equal(again.code, 1);
-    assert.match(again.err, /A wiki already exists/);
+    assert.equal(again.code, 0, again.err);
+    assert.match(again.out, /already exists in wiki; its pages were not touched/);
+    assert.equal(read(dir, 'overview/project.md'), 'my edits\n');
+    const withFolders = await okw(dir, 'init', '--with', 'features');
+    assert.equal(withFolders.code, 1);
+    assert.match(withFolders.err, /--with only applies when creating/);
   } finally {
     cleanup();
   }

@@ -207,8 +207,7 @@ First target: **GitHub Copilot in VS Code**. Paths verified in the VS Code docum
 |---|---|---|
 | Pointer to the wiki | Marked block inside `AGENTS.md` (or `.github/copilot-instructions.md` if the project already uses it) | So the agent always knows the wiki exists and consults it before touching code |
 | Consult skill | `.github/skills/okf-consult-wiki/SKILL.md` | Read `index.md` and drill into the relevant pages |
-| Update skill | `.github/skills/okf-update-wiki/SKILL.md` | Apply `workflows/update-wiki.md` |
-| Validation skill | `.github/skills/okf-validate-wiki/SKILL.md` | Run `validate` and fix what fails |
+| Update skill | `.github/skills/okf-update-wiki/SKILL.md` | Edit pages in place, create new ones with `okw new`, then `okw validate --fix` and fix what it reports (so there is no separate validation skill) |
 | Review skill | `.github/skills/okf-review-wiki/SKILL.md` | List unreviewed pages with `status`, walk the person through them one by one, and run `verify --by human:<id>` only after the person confirms |
 
 Notes on Copilot:
@@ -217,7 +216,10 @@ Notes on Copilot:
 - `AGENTS.md` is read by Copilot, and also by Codex and others. In the Local harness it depends on the `chat.useAgentsMdFile` setting.
 - `.github/copilot-instructions.md` is also read, with `github.copilot.chat.codeGeneration.useInstructionFiles`.
 - A skill is activated by its `description` and the agent decides whether to load it; that is why the pointer exists, since it is always loaded.
-- Generated files belong to the CLI: running `init` again regenerates them (and never touches the pages). Project content goes outside the markers.
+- Generated files belong to the CLI: running `init` again regenerates them (and never touches the pages). Project content goes outside the markers. Each skill carries a header comment saying so.
+- Paths are relative to the directory where `init` runs (the project root). The pointer block goes in the file that already has it, else in `AGENTS.md` if it exists, else in `.github/copilot-instructions.md` if it exists, else a new `AGENTS.md`.
+- The wiki path is written into the generated files, and the update skill lists the types and sections of every folder of the profile, including `extra_folders`.
+- `--no-agents` skips all of this.
 
 Other agents (Claude Code, Cursor, Codex) will be added later as adapters with their paths.
 

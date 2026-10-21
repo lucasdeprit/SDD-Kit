@@ -12,7 +12,7 @@ const { version } = JSON.parse(readFileSync(new URL('../package.json', import.me
 const HELP = `okw ${version} - scaffolding and management of OKF wikis
 
 Commands:
-  init [folder]             Create a wiki with the base profile
+  init [folder]             Create a wiki with the base profile and the files for Copilot (run again to refresh them)
   new <type> <name>         Create a page and register it in its index
   validate [--fix]          Check the wiki (structure, indexes, review state); --fix repairs the mechanical issues
   verify <path>             Record that a page has been reviewed
@@ -34,13 +34,15 @@ const COMMON = {
 const COMMANDS = {
   init: {
     help: initHelp,
-    options: { with: { type: 'string' }, language: { type: 'string' } },
+    options: { with: { type: 'string' }, language: { type: 'string' }, 'no-agents': { type: 'boolean' } },
     run: ({ values, positionals, cwd }) =>
       init({
         cwd,
         dir: positionals[0],
         withFolders: values.with ? values.with.split(',').map((s) => s.trim()).filter(Boolean) : [],
         language: values.language,
+        agents: !values['no-agents'],
+        version,
       }),
   },
   new: {
