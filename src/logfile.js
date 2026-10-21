@@ -20,9 +20,11 @@ export function appendLog(root, entry, now = new Date()) {
   let out;
   if (groups[0] === `## ${date}`) {
     // Today's group already exists: the new entry goes first.
-    out = [...head, groups[0], line, ...groups.slice(1)];
+    const rest = groups.slice(1);
+    if (rest[0] === '') rest.shift();
+    out = [...head, groups[0], '', line, ...rest];
   } else {
-    out = [...head, `## ${date}`, line, '', ...groups];
+    out = [...head, `## ${date}`, '', line, '', ...groups];
   }
   writeText(file, out.join('\n').replace(/\n{3,}/g, '\n\n').replace(/\s+$/, '') + '\n');
   return line;

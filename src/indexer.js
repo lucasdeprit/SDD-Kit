@@ -47,9 +47,8 @@ export function renderIndex(root, relDir, profile) {
     return entryLine(title, `${prefix}/${p}`, oneLine(data?.description));
   });
 
-  if (subs.length) lines.push(...subs, '');
-  if (files.length) lines.push(...files, '');
-  if (!subs.length && !files.length) lines.push('_No pages yet._', '');
+  const entries = [...subs, ...files];
+  lines.push(...(entries.length ? entries : ['_No pages yet._']), '');
 
   const body = lines.join('\n');
   return relDir === '' ? `---\nokf_version: "${OKF_VERSION}"\n---\n${body}` : body;
