@@ -10,18 +10,18 @@ Work in progress. Available: `init`, `new`, `validate`, `verify`. `init` also ge
 
 ## Install
 
-`okw` is installed from the private Git repository, so you need Node 20 or later and read access to the repo (your usual Git credentials: SSH key or `gh auth login`). Pin a version with a tag.
+`okw` is installed from the private Git repository, so you need Node 20 or later and read access to the repo (your usual Git credentials: SSH key or `gh auth login`).
 
 ```bash
 # Run without installing
-npx github:lucasdeprit/SDD-Kit#v0.1.0 init docs/wiki
+npx github:lucasdeprit/SDD-Kit init docs/wiki
 
 # Or install it globally and use the `okw` command
-npm install -g github:lucasdeprit/SDD-Kit#v0.1.0
+npm install -g github:lucasdeprit/SDD-Kit
 okw init docs/wiki
 ```
 
-To upgrade, install the new tag. Then run `okw init` again in each project to refresh the generated agent files.
+This installs the default branch. To pin a version, add a tag or a commit: `github:lucasdeprit/SDD-Kit#v0.1.0`. To upgrade, install again. Then run `okw init` in each project to refresh the generated agent files.
 
 The generated skills call `okw`, so a global install is what lets agents run it.
 
