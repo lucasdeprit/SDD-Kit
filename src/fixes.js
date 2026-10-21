@@ -16,10 +16,6 @@ export function applyFixes(root, profile, { by, now }) {
       done.push(`Created folder ${folder.name}/`);
     }
   }
-  if (!existsSync(join(root, 'log.md'))) {
-    writeText(join(root, 'log.md'), '# Log\n');
-    done.push('Created log.md');
-  }
   for (const page of requiredPages({ by, now })) {
     if (!existsSync(join(root, page.path))) {
       writeText(join(root, page.path), page.text);

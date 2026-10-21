@@ -3,7 +3,6 @@ import { join, resolve } from 'node:path';
 import { stringify } from 'yaml';
 import { CORE_FOLDERS, OPTIONAL_FOLDERS, PROFILE_FILE, PROFILE_ID, loadProfile } from '../profile.js';
 import { regenerateIndexes } from '../indexer.js';
-import { appendLog } from '../logfile.js';
 import { requiredPages, testingStrategyPage } from '../templates.js';
 import { writeText } from '../util.js';
 import { UserError } from '../errors.js';
@@ -46,8 +45,6 @@ export function init({ cwd, dir = 'wiki', withFolders = [], language = 'en', by,
   }
 
   const profile = loadProfile(root);
-  appendLog(root, { kind: 'Init', text: `Wiki created with profile ${PROFILE_ID}.` }, now);
-  created.push('log.md');
   const indexes = regenerateIndexes(root, profile);
   created.push(...indexes);
 

@@ -65,14 +65,13 @@ export function requiredPages({ by, now }) {
 
 const UPDATE_WIKI_BODY = `# Goal
 
-Keep the wiki faithful to the project with as little manual work as possible. The \`okw\` CLI does the mechanical parts (indexes, log, frontmatter, validation); whoever edits only writes content.
+Keep the wiki faithful to the project with as little manual work as possible. The \`okw\` CLI does the mechanical parts (indexes, frontmatter, validation); whoever edits only writes content.
 
 # Steps
 
 1. If a change affects a rule, a pattern or a convention, edit the existing page. Do not create a new page for something that is already documented.
-2. If a new page is needed, create it with \`okw new <type> <name> --description "..."\`. It registers the page in the index and in \`log.md\`. Do not edit \`index.md\` or \`log.md\` by hand.
+2. If a new page is needed, create it with \`okw new <type> <name> --description "..."\`. It registers the page in the index. Do not edit \`index.md\` by hand.
 3. Fill in the page sections. Explain the reason in \`# Why\` when the page asks for it.
-4. If you change an existing page, record the change with \`okw log "<summary>" --page <path>\`.
-5. If something no longer applies, mark its page with \`status: deprecated\` instead of just deleting it.
-6. Run \`okw validate\` and fix whatever it reports.
+4. If something no longer applies, mark its page with \`status: deprecated\` instead of just deleting it.
+5. Run \`okw validate\` and fix whatever it reports.
 `;

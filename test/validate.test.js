@@ -116,16 +116,14 @@ test('detects stale pages, broken links and unknown folders', async () => {
   }
 });
 
-test('detects missing core folders, bad log headings and index frontmatter', async () => {
+test('detects missing core folders and index frontmatter', async () => {
   const { dir, cleanup } = tempDir();
   try {
     await cleanWiki(dir);
     rmSync(W(dir, 'conventions'), { recursive: true });
-    writeFileSync(W(dir, 'log.md'), read(dir, 'log.md') + '\n## yesterday\n\n* **Update** x\n');
     writeFileSync(W(dir, 'patterns/index.md'), '---\ntitle: nope\n---\n# Patterns\n');
     const r = rules(await issues(dir));
     assert.ok(r.includes('structure.core-folder:conventions/'));
-    assert.ok(r.includes('okf.log:log.md'));
     assert.ok(r.includes('okf.index:patterns/index.md'));
   } finally {
     cleanup();

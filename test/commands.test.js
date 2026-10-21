@@ -6,7 +6,7 @@ import { tempDir, okw } from './helpers.js';
 
 const read = (dir, rel) => readFileSync(join(dir, 'wiki', rel), 'utf8');
 
-test('init creates the core, indexes, log and required pages', async () => {
+test('init creates the core, indexes and required pages', async () => {
   const { dir, cleanup } = tempDir();
   try {
     const r = await okw(dir, 'init');
@@ -21,7 +21,8 @@ test('init creates the core, indexes, log and required pages', async () => {
     assert.match(read(dir, 'testing/index.md'), /\[Testing strategy\]\(\/testing\/strategy\.md\)/);
     assert.match(read(dir, 'index.md'), /^---\nokf_version: "0.2"\n---\n# Index/);
     assert.match(read(dir, 'overview/index.md'), /\[Project\]\(\/overview\/project\.md\) - What the project is/);
-    assert.match(read(dir, 'log.md'), /^# Log\n\n## \d{4}-\d{2}-\d{2}\n\n\* \*\*Init\*\*/);
+    assert.ok(!existsSync(join(dir, 'wiki/log.md')), 'no log.md is created');
+    assert.ok(!existsSync(join(dir, 'wiki/.git')) && !existsSync(join(dir, '.git')), 'no git repository is created');
     assert.ok(!existsSync(join(dir, 'wiki/features')), 'optional folders are not created by default');
   } finally {
     cleanup();
@@ -55,7 +56,7 @@ test('init does not overwrite an existing wiki', async () => {
   }
 });
 
-test('new creates the page with a skeleton, indexes it and records it in the log', async () => {
+test('new creates the page with a skeleton and indexes it', async () => {
   const { dir, cleanup } = tempDir();
   try {
     await okw(dir, 'init');
@@ -67,7 +68,7 @@ test('new creates the page with a skeleton, indexes it and records it in the log
     assert.match(page, /status: draft/);
     for (const s of ['When to use', 'How', 'Example', 'Why']) assert.match(page, new RegExp(`# ${s}\\n`));
     assert.match(read(dir, 'patterns/index.md'), /\[State management\]\(\/patterns\/state-management\.md\) - Screen state\./);
-    assert.match(read(dir, 'log.md'), /\*\*Add\*\* \[patterns\/state-management\]\(\/patterns\/state-management\.md\)/);
+    assert.ok(!existsSync(join(dir, 'wiki/log.md')));
   } finally {
     cleanup();
   }
@@ -138,31 +139,16 @@ test('index regenerates and --check detects out-of-date indexes', async () => {
   }
 });
 
-test('log groups by date, newest first', async () => {
-  const { dir, cleanup } = tempDir();
-  try {
-    await okw(dir, 'init');
-    await okw(dir, 'log', 'First');
-    await okw(dir, 'log', 'Second', '--page', 'architecture/layers.md', '--kind', 'Fix');
-    const log = read(dir, 'log.md');
-    assert.equal(log.match(/^## /gm).length, 1);
-    assert.ok(log.indexOf('Second') < log.indexOf('First'));
-    assert.match(log, /\* \*\*Fix\*\* \[architecture\/layers\]\(\/architecture\/layers\.md\) - Second/);
-  } finally {
-    cleanup();
-  }
-});
-
 test('--wiki and upward search locate the wiki', async () => {
   const { dir, cleanup } = tempDir();
   try {
     await okw(dir, 'init', 'docs/wiki');
     mkdirSync(join(dir, 'src/deep'), { recursive: true });
-    const viaSearch = await okw(join(dir, 'src/deep'), 'log', 'from inside');
+    const viaSearch = await okw(join(dir, 'src/deep'), 'index', '--check');
     assert.equal(viaSearch.code, 0, viaSearch.err);
-    const viaFlag = await okw(dir, 'log', 'with flag', '--wiki', 'docs/wiki');
+    const viaFlag = await okw(dir, 'index', '--check', '--wiki', 'docs/wiki');
     assert.equal(viaFlag.code, 0, viaFlag.err);
-    const none = await okw(join(dir, '..'), 'log', 'x');
+    const none = await okw(join(dir, '..'), 'index', '--check');
     assert.equal(none.code, 1);
   } finally {
     cleanup();

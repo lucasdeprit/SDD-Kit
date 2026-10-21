@@ -1,4 +1,4 @@
-import { existsSync, readFileSync } from 'node:fs';
+import { existsSync } from 'node:fs';
 import { join, posix } from 'node:path';
 import { CORE_FOLDERS, typeAlias } from './profile.js';
 import { loadWiki, scanBody } from './pages.js';
@@ -10,7 +10,6 @@ export const DEFAULT_SEVERITY = {
   'okf.frontmatter': 'error',
   'okf.type': 'error',
   'okf.index': 'error',
-  'okf.log': 'error',
   'structure.core-folder': 'error',
   'structure.required-page': 'error',
   'structure.testing-page': 'error',
@@ -59,9 +58,6 @@ export function validateWiki(root, profile, { now = new Date() } = {}) {
   if (existsSync(join(root, 'testing')) && !wiki.concepts.some((c) => c.folder === 'testing')) {
     add('structure.testing-page', 'testing/', 'testing/ has no strategy page.', 'Run "okw validate --fix" to scaffold testing/strategy.md, or create one with "okw new testing <name>".');
   }
-  if (!wiki.hasLog) {
-    add('okf.log', 'log.md', 'log.md is missing.', 'Run "okw validate --fix" to create it.');
-  }
 
   // Names
   for (const rel of [...wiki.dirs, ...wiki.concepts.map((c) => c.rel.replace(/\.md$/, ''))]) {
@@ -79,14 +75,6 @@ export function validateWiki(root, profile, { now = new Date() } = {}) {
       const allowed = idx.rel === 'index.md' && keys.every((k) => k === 'okf_version');
       if (!allowed) {
         add('okf.index', idx.rel, 'index.md must not have frontmatter (only the root one may carry okf_version).', 'Run "okw index" to regenerate it.');
-      }
-    }
-  }
-  if (wiki.hasLog) {
-    const log = readFileSync(join(root, 'log.md'), 'utf8');
-    for (const line of log.split('\n')) {
-      if (line.startsWith('## ') && !/^## \d{4}-\d{2}-\d{2}$/.test(line)) {
-        add('okf.log', 'log.md', `Invalid date heading "${line}". Use "## YYYY-MM-DD".`, 'Edit the heading to the ISO date form.');
       }
     }
   }

@@ -5,7 +5,6 @@ import { findWikiRoot } from './wiki.js';
 import { init, initHelp } from './commands/init.js';
 import { newPage, newHelp } from './commands/new.js';
 import { indexCommand, indexHelp } from './commands/index.js';
-import { logCommand, logHelp } from './commands/log.js';
 import { validateCommand, validateHelp } from './commands/validate.js';
 
 const { version } = JSON.parse(readFileSync(new URL('../package.json', import.meta.url), 'utf8'));
@@ -14,9 +13,8 @@ const HELP = `okw ${version} - scaffolding and management of OKF wikis
 
 Commands:
   init [folder]             Create a wiki with the base profile
-  new <type> <name>         Create a page, index it and record it in the log
+  new <type> <name>         Create a page and register it in its index
   index [--check]           Regenerate the index.md files
-  log "<message>"           Append a line to log.md
   validate [--fix]          Check the wiki against OKF and the profile
 
 Common options:
@@ -75,13 +73,6 @@ const COMMANDS = {
     options: { fix: { type: 'boolean' }, strict: { type: 'boolean' } },
     needsWiki: true,
     run: ({ values, root }) => validateCommand({ root, fix: values.fix, strict: values.strict, version }),
-  },
-  log: {
-    help: logHelp,
-    options: { page: { type: 'string' }, kind: { type: 'string' } },
-    needsWiki: true,
-    run: ({ values, positionals, root }) =>
-      logCommand({ root, message: positionals.join(' '), page: values.page, kind: values.kind }),
   },
 };
 

@@ -2,7 +2,6 @@ import { existsSync } from 'node:fs';
 import { join } from 'node:path';
 import { findFolderByType, loadProfile, typeAlias } from '../profile.js';
 import { regenerateIndexes } from '../indexer.js';
-import { appendLog, pageRef } from '../logfile.js';
 import { renderPage } from '../templates.js';
 import { assertKebabPath, humanize, writeText } from '../util.js';
 import { UserError } from '../errors.js';
@@ -10,7 +9,7 @@ import { UserError } from '../errors.js';
 export const newHelp = `okw new <type> <name> --description "..." [--title "..."] [--by <actor>]
 
 Creates a page with frontmatter and a section skeleton, registers it in the
-index.md of its folder and records an entry in log.md. The name is relative to
+index.md of its folder. The name is relative to
 the folder of the type (e.g. "state-management" or "bloc/state"). The type is
 the singular name: overview, architecture, pattern, convention, workflow,
 testing, feature, module, interface, operation, troubleshooting.`;
@@ -44,17 +43,16 @@ export function newPage({ root, type, name, title, description, by, now = new Da
   writeText(file, text);
 
   const indexes = regenerateIndexes(root, profile);
-  appendLog(root, { kind: 'Add', text: pageRef(rel, pageTitle) }, now);
   const sections = folder.sections.map((s) => `# ${s}`);
 
   return {
     path: rel,
     type: folder.type,
     sections,
-    updated: [...indexes, 'log.md'],
+    updated: indexes,
     text: [
       `Created ${rel} (type: ${folder.type}).`,
-      `Indexes updated: ${indexes.join(', ') || 'none'}. Entry added to log.md.`,
+      `Indexes updated: ${indexes.join(', ') || 'none'}.`,
       `Fill in these sections: ${sections.join(', ')}.`,
     ].join('\n'),
   };
