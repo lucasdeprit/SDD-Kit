@@ -4,10 +4,8 @@ import { UserError } from './errors.js';
 import { findWikiRoot } from './wiki.js';
 import { init, initHelp } from './commands/init.js';
 import { newPage, newHelp } from './commands/new.js';
-import { indexCommand, indexHelp } from './commands/index.js';
 import { validateCommand, validateHelp } from './commands/validate.js';
 import { verifyCommand, verifyHelp } from './commands/verify.js';
-import { statusCommand, statusHelp } from './commands/status.js';
 
 const { version } = JSON.parse(readFileSync(new URL('../package.json', import.meta.url), 'utf8'));
 
@@ -16,10 +14,8 @@ const HELP = `okw ${version} - scaffolding and management of OKF wikis
 Commands:
   init [folder]             Create a wiki with the base profile
   new <type> <name>         Create a page and register it in its index
-  index [--check]           Regenerate the index.md files
-  validate [--fix]          Check the wiki against OKF and the profile
+  validate [--fix]          Check the wiki (structure, indexes, review state); --fix repairs the mechanical issues
   verify <path>             Record that a page has been reviewed
-  status                    Summarise which pages are unreviewed, outdated or deprecated
 
 Common options:
   --wiki <folder>           Wiki to operate on (by default it is searched from the current directory)
@@ -62,12 +58,6 @@ const COMMANDS = {
       });
     },
   },
-  index: {
-    help: indexHelp,
-    options: { check: { type: 'boolean' } },
-    needsWiki: true,
-    run: ({ values, root }) => indexCommand({ root, check: values.check }),
-  },
   verify: {
     help: verifyHelp,
     options: { by: { type: 'string' }, force: { type: 'boolean' } },
@@ -81,12 +71,6 @@ const COMMANDS = {
         force: values.force,
         version,
       }),
-  },
-  status: {
-    help: statusHelp,
-    options: { only: { type: 'string' } },
-    needsWiki: true,
-    run: ({ values, root }) => statusCommand({ root, only: values.only }),
   },
   validate: {
     help: validateHelp,

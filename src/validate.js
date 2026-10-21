@@ -63,7 +63,7 @@ export function validateWiki(root, profile) {
   for (const rel of [...wiki.dirs, ...wiki.concepts.map((c) => c.rel.replace(/\.md$/, ''))]) {
     const bad = rel.split('/').find((seg) => !KEBAB.test(seg));
     if (bad) {
-      add('name.kebab-case', rel, `"${bad}" is not kebab-case.`, 'Rename it using lowercase letters, digits and hyphens, then run "okw index".');
+      add('name.kebab-case', rel, `"${bad}" is not kebab-case.`, 'Rename it using lowercase letters, digits and hyphens, then run "okw validate --fix".');
     }
   }
 
@@ -74,7 +74,7 @@ export function validateWiki(root, profile) {
       const keys = [...idx.text.matchAll(/^([A-Za-z_][\w-]*):/gm)].map((m) => m[1]);
       const allowed = idx.rel === 'index.md' && keys.every((k) => k === 'okf_version');
       if (!allowed) {
-        add('okf.index', idx.rel, 'index.md must not have frontmatter (only the root one may carry okf_version).', 'Run "okw index" to regenerate it.');
+        add('okf.index', idx.rel, 'index.md must not have frontmatter (only the root one may carry okf_version).', 'Run "okw validate --fix" to regenerate it.');
       }
     }
   }
@@ -151,7 +151,7 @@ export function validateWiki(root, profile) {
 
   // Indexes
   for (const rel of regenerateIndexes(root, profile, { check: true })) {
-    add('index.out-of-date', rel, 'This index does not match the pages in its folder (or is missing).', 'Run "okw index" to regenerate it.');
+    add('index.out-of-date', rel, 'This index does not match the pages in its folder (or is missing).', 'Run "okw validate --fix" to regenerate it.');
   }
 
   const order = { error: 0, warning: 1 };

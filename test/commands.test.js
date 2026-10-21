@@ -118,20 +118,19 @@ test('new --json returns structured data', async () => {
   }
 });
 
-test('index regenerates and --check detects out-of-date indexes', async () => {
+test('validate flags out-of-date indexes and --fix regenerates them', async () => {
   const { dir, cleanup } = tempDir();
   try {
     await okw(dir, 'init');
-    assert.equal((await okw(dir, 'index', '--check')).code, 0);
+    const rules = async (...a) => JSON.parse((await okw(dir, 'validate', '--json', ...a)).out).issues.map((i) => `${i.rule}:${i.file}`);
+    assert.ok(!(await rules()).some((r) => r.startsWith('index.out-of-date')));
     writeFileSync(
       join(dir, 'wiki/conventions/naming.md'),
-      '---\ntype: Convention\ntitle: Naming\ndescription: Naming.\n---\n# Rule\n',
+      '---\ntype: Convention\ntitle: Naming\ndescription: Naming.\n---\n# Rule\n\n# Examples\n',
     );
-    const check = await okw(dir, 'index', '--check');
-    assert.equal(check.code, 1);
-    assert.match(check.out, /conventions\/index\.md/);
-    assert.equal((await okw(dir, 'index')).code, 0);
-    assert.equal((await okw(dir, 'index', '--check')).code, 0);
+    assert.ok((await rules()).includes('index.out-of-date:conventions/index.md'));
+    await okw(dir, 'validate', '--fix');
+    assert.ok(!(await rules()).some((r) => r.startsWith('index.out-of-date')));
     assert.match(read(dir, 'conventions/index.md'), /\[Naming\]\(\/conventions\/naming\.md\) - Naming\./);
   } finally {
     cleanup();
@@ -143,11 +142,11 @@ test('--wiki and upward search locate the wiki', async () => {
   try {
     await okw(dir, 'init', 'docs/wiki');
     mkdirSync(join(dir, 'src/deep'), { recursive: true });
-    const viaSearch = await okw(join(dir, 'src/deep'), 'index', '--check');
+    const viaSearch = await okw(join(dir, 'src/deep'), 'validate');
     assert.equal(viaSearch.code, 0, viaSearch.err);
-    const viaFlag = await okw(dir, 'index', '--check', '--wiki', 'docs/wiki');
+    const viaFlag = await okw(dir, 'validate', '--wiki', 'docs/wiki');
     assert.equal(viaFlag.code, 0, viaFlag.err);
-    const none = await okw(join(dir, '..'), 'index', '--check');
+    const none = await okw(join(dir, '..'), 'validate');
     assert.equal(none.code, 1);
   } finally {
     cleanup();

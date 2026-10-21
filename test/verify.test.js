@@ -17,8 +17,9 @@ async function setup(dir, front) {
   writeFileSync(W(dir, 'patterns/state.md'), filled(front));
 }
 
-const status = async (dir, ...args) => JSON.parse((await okw(dir, 'status', '--json', ...args)).out);
-const flagsOf = (res, path) => res.pages.find((p) => p.path === path)?.flags;
+const check = async (dir) => JSON.parse((await okw(dir, 'validate', '--json')).out);
+// Review-related issue raised for a page, if any.
+const reviewIssue = (res, path) => res.issues.find((i) => i.file === path && i.rule.startsWith('frontmatter.verified'))?.rule;
 
 test('verify adds { by, at, hash } and keeps the rest of the file intact', async () => {
   const { dir, cleanup } = tempDir();
@@ -81,19 +82,17 @@ test('editing a verified page makes the verification outdated until it is verifi
   const { dir, cleanup } = tempDir();
   try {
     await setup(dir);
+    assert.equal(reviewIssue(await check(dir), 'patterns/state.md'), 'frontmatter.verified');
     await okw(dir, 'verify', 'patterns/state', '--by', 'human:ana');
-    assert.ok(!flagsOf(await status(dir), 'patterns/state.md')?.length);
-    assert.ok(!/frontmatter\.verified\S*\s+patterns\/state\.md/.test((await okw(dir, 'validate')).out));
+    assert.equal(reviewIssue(await check(dir), 'patterns/state.md'), undefined);
 
     writeFileSync(W(dir, 'patterns/state.md'), read(dir, 'patterns/state.md').replace('Because.', 'Because of this.'));
-    const after = await status(dir);
-    assert.deepEqual(flagsOf(after, 'patterns/state.md'), ['outdated']);
-    assert.equal(after.by_trust.outdated, 1);
-    const v = JSON.parse((await okw(dir, 'validate', '--json')).out);
-    assert.ok(v.issues.some((i) => i.rule === 'frontmatter.verified-outdated' && i.file === 'patterns/state.md'));
+    const after = await check(dir);
+    assert.equal(reviewIssue(after, 'patterns/state.md'), 'frontmatter.verified-outdated');
+    assert.equal(after.review.outdated, 1);
 
     await okw(dir, 'verify', 'patterns/state', '--by', 'human:ana');
-    assert.ok(!flagsOf(await status(dir), 'patterns/state.md')?.length);
+    assert.equal(reviewIssue(await check(dir), 'patterns/state.md'), undefined);
   } finally {
     cleanup();
   }
@@ -105,7 +104,7 @@ test('changing status does not invalidate a verification; re-verifying drops out
     await setup(dir);
     await okw(dir, 'verify', 'patterns/state', '--by', 'process:ci');
     writeFileSync(W(dir, 'patterns/state.md'), read(dir, 'patterns/state.md').replace('type: Pattern', 'status: stable\ntype: Pattern'));
-    assert.ok(!flagsOf(await status(dir), 'patterns/state.md')?.length);
+    assert.equal(reviewIssue(await check(dir), 'patterns/state.md'), undefined);
 
     writeFileSync(W(dir, 'patterns/state.md'), read(dir, 'patterns/state.md').replace('Code.', 'More code.'));
     await okw(dir, 'verify', 'patterns/state', '--by', 'human:ana');
@@ -121,10 +120,11 @@ test('a verification written by hand (no hash) is accepted and never outdated', 
   const { dir, cleanup } = tempDir();
   try {
     await setup(dir, 'verified:\n  - { by: human:ana, at: 2026-10-01T00:00:00Z }\n');
-    assert.ok(!flagsOf(await status(dir), 'patterns/state.md')?.length);
+    assert.equal(reviewIssue(await check(dir), 'patterns/state.md'), undefined);
     writeFileSync(W(dir, 'patterns/state.md'), read(dir, 'patterns/state.md').replace('Because.', 'Changed.'));
-    assert.ok(!flagsOf(await status(dir), 'patterns/state.md')?.length);
-    assert.equal((await status(dir)).by_trust['human-reviewed'], 1);
+    const after = await check(dir);
+    assert.equal(reviewIssue(after, 'patterns/state.md'), undefined);
+    assert.equal(after.review['human-reviewed'], 1);
   } finally {
     cleanup();
   }
@@ -172,40 +172,33 @@ test('verify accepts a path relative to the current directory', async () => {
   }
 });
 
-test('status counts trust tiers, lists pages needing attention and skips deprecated pages', async () => {
+test('validate summarises the review state and skips deprecated pages', async () => {
   const { dir, cleanup } = tempDir();
   try {
     await setup(dir);
     await okw(dir, 'verify', 'patterns/state', '--by', 'human:ana');
     writeFileSync(W(dir, 'patterns/old.md'), filled('status: deprecated\n').replace('title: State', 'title: Old'));
-    await okw(dir, 'index');
-    const r = await status(dir);
-    assert.equal(r.total, 5);
-    assert.equal(r.deprecated, 1);
-    assert.equal(r.by_trust['human-reviewed'], 1);
-    assert.equal(r.by_trust.unverified, 3);
-    assert.deepEqual(flagsOf(r, 'patterns/old.md'), ['deprecated']);
-    assert.ok(flagsOf(r, 'testing/strategy.md').includes('unverified'));
-    assert.ok(flagsOf(r, 'testing/strategy.md').includes('todo'));
-    const v = JSON.parse((await okw(dir, 'validate', '--json')).out);
-    assert.ok(!v.issues.some((i) => i.file === 'patterns/old.md' && i.rule.startsWith('frontmatter.verified')));
-    const text = (await okw(dir, 'status')).out;
-    assert.match(text, /5 pages \(1 deprecated\)/);
+    await okw(dir, 'validate', '--fix');
+    const r = await check(dir);
+    assert.deepEqual(r.review, { pages: 5, deprecated: 1, 'human-reviewed': 1, 'machine-confirmed': 0, unverified: 3, outdated: 0 });
+    assert.equal(reviewIssue(r, 'patterns/old.md'), undefined, 'deprecated pages are not asked to be reviewed');
+    assert.equal(reviewIssue(r, 'testing/strategy.md'), 'frontmatter.verified');
+    const text = (await okw(dir, 'validate')).out;
     assert.match(text, /Review: 1 human-reviewed, 0 machine-confirmed, 3 unverified, 0 outdated/);
   } finally {
     cleanup();
   }
 });
 
-test('status --only filters and validates the filter', async () => {
+test('the status and index commands no longer exist', async () => {
   const { dir, cleanup } = tempDir();
   try {
-    await setup(dir);
-    const r = await status(dir, '--only', 'todo');
-    assert.ok(r.pages.length > 0 && r.pages.every((p) => p.flags.includes('todo')));
-    assert.ok(!r.pages.some((p) => p.path === 'patterns/state.md'));
-    assert.match((await okw(dir, 'status', '--only', 'outdated')).out, /No pages flagged "outdated"/);
-    assert.equal((await okw(dir, 'status', '--only', 'wat')).code, 1);
+    await okw(dir, 'init');
+    for (const name of ['status', 'index', 'log']) {
+      const r = await okw(dir, name);
+      assert.equal(r.code, 1);
+      assert.match(r.err, /Unknown command/);
+    }
   } finally {
     cleanup();
   }

@@ -22,7 +22,7 @@ async function cleanWiki(dir) {
   writeFileSync(W(dir, 'testing/strategy.md'), goodPage('Testing', ['Scope', 'How to run', 'Rules'], '\nSee [project](/overview/project.md).\n'));
   writeFileSync(W(dir, 'overview/project.md'), goodPage('Overview', ['Purpose', 'Scope'], '\nTesting: [strategy](/testing/strategy.md).\n'));
   writeFileSync(W(dir, 'workflows/update-wiki.md'), goodPage('Workflow', ['Goal', 'Steps']));
-  await okw(dir, 'index');
+  await okw(dir, 'validate', '--fix');
 }
 
 test('a fresh wiki has no errors, only warnings about unreviewed and unfilled pages', async () => {
@@ -105,7 +105,7 @@ test('detects broken links and unknown folders', async () => {
     );
     mkdirSync(W(dir, 'misc'));
     writeFileSync(W(dir, 'misc/note.md'), goodPage('Note', []));
-    await okw(dir, 'index');
+    await okw(dir, 'validate', '--fix');
     const r = rules(await issues(dir));
     assert.ok(r.includes('link.broken:conventions/naming.md'));
     assert.ok(r.includes('structure.unknown-folder:misc/note.md'));
@@ -165,7 +165,6 @@ test('--fix repairs folders, required pages, sections and indexes, and reports w
     assert.ok(!r.some((x) => x.startsWith('index.out-of-date')));
     assert.ok(r.includes('page.todo:patterns/short.md'), 'content problems remain for the agent');
     assert.equal(res.errors, 0);
-    assert.equal((await okw(dir, 'index', '--check')).code, 0);
   } finally {
     cleanup();
   }
@@ -176,12 +175,11 @@ test('human output lists rule, file, message and fix, and a summary line', async
   try {
     await okw(dir, 'init');
     rmSync(W(dir, 'testing/strategy.md'));
-    await okw(dir, 'index');
     const r = await okw(dir, 'validate');
     assert.equal(r.code, 1);
     assert.match(r.out, /error\s+structure\.testing-page\s+testing\//);
     assert.match(r.out, /scaffold testing\/strategy\.md/);
-    assert.match(r.out, /1 error, \d+ warnings?\. Validation failed\./);
+    assert.match(r.out, /\d+ errors?, \d+ warnings?\. Validation failed\./);
   } finally {
     cleanup();
   }
