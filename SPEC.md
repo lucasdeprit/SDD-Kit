@@ -58,12 +58,12 @@ wiki/
 └── troubleshooting/   # optional
 ```
 
-Folder names are fixed and do not depend on any technology. Whatever is specific to a project (for example `bloc` or `payments`) goes in pages, not in folders of the standard.
+Folder names are fixed and do not depend on any technology. Whatever is specific to a project (a framework, an internal package) goes in pages, not in folders of the standard.
 
 ### General rules
 
 - Every folder has an `index.md`.
-- File and folder names in `kebab-case`, without repeating the folder name (`modules/arch-core.md`, not `modules/auth-core.md` if the folder is already `auth/`).
+- File and folder names in `kebab-case`, without repeating the folder name (`modules/auth/core.md`, not `modules/auth/auth-core.md`).
 - Own folders can be added (declared in `extra_folders`); core folders cannot be removed or renamed.
 - There is no decisions folder. The reason for a rule lives in the `# Why` section of its page. What changes is edited in the page; the history is left to git. What stops applying is marked `status: deprecated`.
 - Page content can be in any language. The `type` names, frontmatter fields and required section names are in English.

@@ -71,7 +71,7 @@ The wiki lives in \`${wiki}/\`. The \`okw\` CLI does the mechanical work; you on
 
 ${typeList(profile)}
 
-   \`<name>\` is kebab-case and relative to the folder (for example \`state-management\` or \`bloc/state\`).
+   \`<name>\` is kebab-case and relative to the folder (for example \`state-management\` or \`ui/forms\`).
 3. Fill in every section and delete the \`<!-- TODO -->\` comments. Write in the language the existing pages use.
 4. Never edit \`index.md\` files and never write \`verified\` entries: you are not a reviewer. New and edited pages stay unreviewed until a person verifies them.
 5. If something no longer applies, set \`status: deprecated\` in that page's frontmatter instead of deleting it.

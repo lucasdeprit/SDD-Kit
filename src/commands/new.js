@@ -10,7 +10,7 @@ export const newHelp = `okw new <type> <name> --description "..." [--title "..."
 
 Creates a page with frontmatter and a section skeleton, registers it in the
 index.md of its folder. The name is relative to
-the folder of the type (e.g. "state-management" or "bloc/state"). The type is
+the folder of the type (e.g. "state-management" or "ui/forms"). The type is
 the singular name: overview, architecture, pattern, convention, workflow,
 testing, feature, module, interface, operation, troubleshooting.`;
 
