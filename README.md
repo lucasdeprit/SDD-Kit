@@ -77,3 +77,7 @@ npm install
 npm test
 node bin/okw.js --help   # run from a clone
 ```
+
+## License
+
+[MIT](LICENSE)

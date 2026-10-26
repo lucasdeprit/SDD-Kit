@@ -2,6 +2,7 @@
   "name": "okw",
   "version": "0.1.0",
   "description": "Scaffolding and management of project wikis in Open Knowledge Format (OKF)",
+  "license": "MIT",
   "type": "module",
   "bin": {
     "okw": "bin/okw.js"
